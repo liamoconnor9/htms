@@ -21,14 +21,16 @@ conda activate dedalus3
 export MPI_UNBUFFERED_STDIO=true
 
 source ~/png2mp4.sh
-cd ~/mri/mri_d3
 
-SUFF="viff1en2_R0p6_N4_noslip1"
+CONFIG="mri_options.cfg"
+while read -r line; do
+    eval $line &>/dev/null || continue
+done <$CONFIG
+echo $SUFF
 
 FILE="$(readlink -f "$0")"
 DIR="$(dirname "$(readlink -f "$0")")/"
-CONFIG="mri_options.cfg"
-MAIN="mri_2d.py"
+MAIN="mri.py"
 
 MPIPROC=4
 

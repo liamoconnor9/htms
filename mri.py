@@ -22,27 +22,32 @@ import logging
 import pathlib
 logger = logging.getLogger(__name__)
 
-def vp_bvp_func(by, bz, bx):
-    problem = d3.LBVP(variables=['Ax','Ay', 'Az', 'phi'])
+def vp_bvp_func(by, bz, bx, Ay, Ax, Az, phi, coords):
 
-    problem.parameters['by'] = by
-    problem.parameters['bz'] = bz
-    problem.parameters['bx'] = bx
+    # problem.parameters['by'] = by
+    # problem.parameters['bz'] = bz
+    # problem.parameters['bx'] = bx
+
+    dy = lambda A: d3.Differentiate(A, coords['y'])
+    dz = lambda A: d3.Differentiate(A, coords['z'])
+    dx = lambda A: d3.Differentiate(A, coords['x'])
+
+    problem = d3.LBVP(variables=[Ax, Ay, Az, phi], namespace=locals())
 
     problem.add_equation("dx(Ax) + dy(Ay) + dz(Az) = 0")
     problem.add_equation("dy(Az) - dz(Ay) + dx(phi) = bx")
     problem.add_equation("dz(Ax) - dx(Az) + dy(phi) = by")
     problem.add_equation("dx(Ay) - dy(Ax) + dz(phi) = bz")
 
-    problem.add_bc("left(Ay) = 0", condition="(ny!=0) or (nz!=0)")
-    problem.add_bc("left(Az) = 0", condition="(ny!=0) or (nz!=0)")
-    problem.add_bc("right(Ay) = 0", condition="(ny!=0) or (nz!=0)")
-    problem.add_bc("right(Az) = 0", condition="(ny!=0) or (nz!=0)")
+    problem.add_equation("Ay(x='left') = 0", condition="(ny!=0) or (nz!=0)")
+    problem.add_equation("Az(x='left') = 0", condition="(ny!=0) or (nz!=0)")
+    problem.add_equation("Ay(x='right') = 0", condition="(ny!=0) or (nz!=0)")
+    problem.add_equation("Az(x='right') = 0", condition="(ny!=0) or (nz!=0)")
 
-    problem.add_bc("left(Ax) = 0", condition="(ny==0) and (nz==0)")
-    problem.add_bc("left(Ay) = 0", condition="(ny==0) and (nz==0)")
-    problem.add_bc("left(Az) = 0", condition="(ny==0) and (nz==0)")
-    problem.add_bc("left(phi) = 0", condition="(ny==0) and (nz==0)")
+    problem.add_equation("Ax(x='left') = 0", condition="(ny==0) and (nz==0)")
+    problem.add_equation("Ay(x='left') = 0", condition="(ny==0) and (nz==0)")
+    problem.add_equation("Az(x='left') = 0", condition="(ny==0) and (nz==0)")
+    problem.add_equation("phi(x='left') = 0", condition="(ny==0) and (nz==0)")
 
     # Build solver
     solver = problem.build_solver()
@@ -97,7 +102,7 @@ ary = Ly / Lx
 arz = Lz / Lx
 
 # Evolution params
-timestep = config.getfloat('parameters', 'dt')
+max_timestep = config.getfloat('parameters', 'dt')
 stop_sim_time = config.getfloat('parameters', 'stop_sim_time')
 wall_time = 60. * 60. * config.getfloat('parameters', 'wall_time_hr')
 dtype = np.float64
@@ -126,6 +131,7 @@ x = dist.local_grid(xbasis)
 
 # nccs
 U0 = dist.VectorField(coords, name='U0', bases=xbasis)
+S = 1e0
 U0['g'][0] = S * x
 
 fz_hat = dist.VectorField(coords, name='fz_hat', bases=xbasis)
@@ -154,9 +160,45 @@ b.store_last = True
 ey = dist.VectorField(coords, name='ey')
 ez = dist.VectorField(coords, name='ez')
 ex = dist.VectorField(coords, name='ex')
+
 ey['g'][0] = 1
 ez['g'][1] = 1
 ex['g'][2] = 1
+
+by = (b@ey).evaluate()
+bz = (b@ez).evaluate()
+bx = (b@ex).evaluate()
+
+# Initial conditions
+lshape = dist.grid_layout.local_shape(u.domain, scales=1)
+noise_coeff = 1e-3
+
+rand = np.random.RandomState(seed=23 + CW.rank)
+noise = noise_coeff * rand.standard_normal(lshape)
+u['g'][0] = noise
+
+rand = np.random.RandomState(seed=23 + CW.rank)
+noise = noise_coeff * rand.standard_normal(lshape)
+u['g'][1] = noise
+
+rand = np.random.RandomState(seed=23 + CW.rank)
+noise = noise_coeff * rand.standard_normal(lshape)
+u['g'][2] = noise
+
+# bz['g'] = 1.0
+
+# Ay = (A@ey).evaluate()
+# Az = (A@ez).evaluate()
+# Ax = (A@ex).evaluate()
+
+# Ay['g'], Az['g'], Ax['g'] = vp_bvp_func(by, bz, bx, Ay, Ax, Az, phi, coords)
+
+A.change_scales(1)
+A['g'][0] = 1e1*np.cos(x*np.pi) / Lx
+
+dy = lambda A: d3.Differentiate(A, coords['y'])
+dz = lambda A: d3.Differentiate(A, coords['z'])
+dx = lambda A: d3.Differentiate(A, coords['x'])
 
 integ = lambda A: d3.Integrate(d3.Integrate(d3.Integrate(A, 'y'), 'z'), 'x')
 
@@ -202,14 +244,8 @@ problem.add_equation("phi(x='right') = 0")
 solver = problem.build_solver(d3.SBDF2)
 solver.stop_sim_time = stop_sim_time
 
-# Initial conditions
-lshape = dist.grid_layout.local_shape(u.domain, scales=1)
-rand = np.random.RandomState(seed=23 + CW.rank)
-noise = rand.standard_normal(lshape)
-
-u.change_scales(1)
-u['g'][2] = np.cos(x) * noise
-A['g'][0] = -(np.cos(2*x) + 1) / 2.0
+# sys.exit()
+# A['g'][0], A['g'][1], A['g'][2] = vp_bvp_func(by, bz, bx)
 
 fh_mode = 'overwrite'
 
@@ -241,7 +277,7 @@ try:
     logger.info('Starting main loop')
     while solver.proceed:
         timestep = CFL.compute_timestep()
-        if (solver.iteration-1) % 100 == 0:
+        if (solver.iteration-1) % 10 == 0:
             max_Re = flow.max('Re')
             logger.info('Iteration=%i, Time=%e, dt=%e, max(Re)=%f' %(solver.iteration, solver.sim_time, timestep, max_Re))
         solver.step(timestep)
