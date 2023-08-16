@@ -40,9 +40,9 @@ cp $MAIN $SUFF
 cd $SUFF
 
 mpiexec_mpt -np $MPIPROC python3 $MAIN $CONFIG $DIR $SUFF
-exit 1
 cd ..
 python plot_scalars.py
+exit 1
 # mpiexec_mpt -np $MPIPROC python3 -m dedalus merge_procs scalars_${SUFF} --cleanup
 # exit 1
 # python3 plotting_scripts/plot_kebe.py scalars_${SUFF}/*.h5 --dir=$DIR --config=$CONFIG --suffix=$SUFF

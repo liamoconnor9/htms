@@ -23,6 +23,7 @@ import logging
 import pathlib
 logger = logging.getLogger(__name__)
 sys.path.append('..')
+from vp_bvp_func import vp_bvp_func
     
 args = docopt(__doc__)
 filename = Path(args['<config_file>'])
@@ -110,7 +111,7 @@ A = dist.VectorField(coords, name='A', bases=(ybasis,zbasis,xbasis))
 b = dist.VectorField(coords, name='b', bases=(ybasis,zbasis,xbasis))
 
 taup = dist.Field(name='taup')
-tauphi = dist.Field(name='tauphi', bases=(ybasis,zbasis))
+# tauphi = dist.Field(name='tauphi')
 
 tau1u = dist.VectorField(coords, name='tau1u', bases=(ybasis,zbasis))
 tau2u = dist.VectorField(coords, name='tau2u', bases=(ybasis,zbasis))
@@ -136,7 +137,7 @@ bx = (b@ex).evaluate()
 
 # Initial conditions
 lshape = dist.grid_layout.local_shape(u.domain, scales=1)
-noise_coeff = 1e-3
+noise_coeff = 1e-5
 
 rand = np.random.RandomState(seed=23 + CW.rank)
 noise = x * (Lx - x) * noise_coeff * rand.standard_normal(lshape)
@@ -150,11 +151,16 @@ rand = np.random.RandomState(seed=23 + CW.rank)
 noise = noise_coeff * rand.standard_normal(lshape)
 u['g'][2] = noise
 
-Ay = A @ ey
-Az = A @ ez
-Ax = A @ ex
+# bz['g'] = 1.0
+
+# Ay = (A@ey).evaluate()
+# Az = (A@ez).evaluate()
+# Ax = (A@ex).evaluate()
 
 # Ay['g'], Az['g'], Ax['g'] = vp_bvp_func(by, bz, bx, Ay, Ax, Az, phi, coords)
+
+A.change_scales(1)
+A['g'][0] = 1e-2*np.cos(x*np.pi / Lx) * Lx / np.pi
 
 dy = lambda A: d3.Differentiate(A, coords['y'])
 dz = lambda A: d3.Differentiate(A, coords['z'])
@@ -166,44 +172,11 @@ lift_basis = xbasis.derivative_basis(1) # First derivative basis
 lift = lambda A: d3.Lift(A, lift_basis, -1)
 grad_u = d3.grad(u) + ex*lift(tau1u) # First-order reduction
 grad_A = d3.grad(A) + ex*lift(tau1A) # First-order reduction
-grad_phi = d3.grad(phi) + ex*lift(tauphi)
-# curl_Ay = d3.curl(A)@ey + lift(tau1A)@ey # First-order reduction
-# curl_Az = d3.curl(A)@ez + lift(tau1A)@ez # First-order reduction
-# curl_Ax = d3.curl(A)@ex # First-order reduction
 grad_b = d3.grad(b)
 
-A.change_scales(1)
-b = d3.Curl(A).evaluate()
-b.change_scales(1)
-b['g'][1] = 1e0*np.sin(x*np.pi / Lx)
-set_b = True
-
-# problem.parameters['by'] = by
-# problem.parameters['bz'] = bz
-# problem.parameters['bx'] = bx
-if (set_b):
-    logger.info('solving bvp for vector potential A given b')
-    problem = d3.LBVP(variables=[A, phi, tau1A, tauphi], namespace=locals())
-
-    problem.add_equation("trace(grad_A) = 0")
-    problem.add_equation("curl(A) + grad_phi + lift(tau1A) = b")
-
-    problem.add_equation("Ay(x='left') = 0", condition="(ny!=0) or (nz!=0)")
-    problem.add_equation("Az(x='left') = 0", condition="(ny!=0) or (nz!=0)")
-    problem.add_equation("Ay(x='right') = 0", condition="(ny!=0) or (nz!=0)")
-    problem.add_equation("Az(x='right') = 0", condition="(ny!=0) or (nz!=0)")
-
-    problem.add_equation("Ax(x='left') = 0", condition="(ny==0) and (nz==0)")
-    problem.add_equation("Ay(x='left') = 0", condition="(ny==0) and (nz==0)")
-    problem.add_equation("Az(x='left') = 0", condition="(ny==0) and (nz==0)")
-    problem.add_equation("phi(x='left') = 0", condition="(ny==0) and (nz==0)")
-
-    # Build solver
-    solver = problem.build_solver()
-    solver.solve()
-    logger.info('bvp solved.')
-
-
+# Problem
+# First-order form: "div(f)" becomes "trace(grad_f)"
+# First-order form: "lap(f)" becomes "div(grad_f)"
 problem = d3.IVP([p, phi, u, A, taup, tau1u, tau2u, tau1A, tau2A], namespace=locals())
 problem.add_equation("trace(grad_u) + taup = 0")
 problem.add_equation("trace(grad_A) = 0")
@@ -283,7 +256,7 @@ try:
             # status = 'Iteration=%i, Time=%e, dt=%e, x_l2%f, u_l2%f, b_l2=%f' %(solver.iteration, solver.sim_time, timestep, x_l2, u_l2, b_l2)
             nums = [solver.iteration, solver.sim_time, timestep, x_l2, u_l2, b_l2]
             status = 'Iteration={}, Time={}, dt={}, x_l2={}, u_l2={}, b_l2={}'.format(*nums)
-            if (solver.iteration-1) % 10 == 0:
+            if (solver.iteration-1) % 100 == 0:
                 logger.info(status)
 
             with open("status.txt", "a") as file:

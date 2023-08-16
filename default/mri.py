@@ -16,6 +16,7 @@ import gc
 import pickle
 import dedalus.public as d3
 from mpi4py import MPI
+import pickle
 
 CW = MPI.COMM_WORLD
 import logging
@@ -70,8 +71,10 @@ config = ConfigParser()
 config.read(str(filename))
 
 logger.info('Running mri_vp.py with the following parameters:')
-logger.info(config.items('parameters'))
-
+param_str = config.items('parameters')
+logger.info(param_str)
+with open("status.txt", "w") as file:
+    file.write(str(param_str) + "\n")
 restart = config.getboolean('parameters','restart')
 
 Ny = config.getint('parameters','Ny')
@@ -171,10 +174,10 @@ bx = (b@ex).evaluate()
 
 # Initial conditions
 lshape = dist.grid_layout.local_shape(u.domain, scales=1)
-noise_coeff = 1e-3
+noise_coeff = 1e-5
 
 rand = np.random.RandomState(seed=23 + CW.rank)
-noise = noise_coeff * rand.standard_normal(lshape)
+noise = x * (Lx - x) * noise_coeff * rand.standard_normal(lshape)
 u['g'][0] = noise
 
 rand = np.random.RandomState(seed=23 + CW.rank)
@@ -267,22 +270,42 @@ CFL.add_velocity(b)
 
 # Flow properties
 flow = d3.GlobalFlowProperty(solver, cadence=1)
-flow.add_property(np.sqrt(d3.dot(u,u))/nu, name='Re')
+flow.add_property(np.sqrt(d3.dot(u, u)) + np.sqrt(d3.dot(b, b)), name='x_l2')
+flow.add_property(np.sqrt(d3.dot(u, u)), name='u_l2')
+flow.add_property(np.sqrt(d3.dot(b, b)), name='b_l2')
 
 # Main loop
 # print(flow.properties.tasks)
 solver.evaluator.evaluate_handlers((flow.properties, ))
+metrics = 'Iteration, Time, dt, x_l2, u_l2, b_l2'
+with open("data.csv", "w") as file:
+    file.write(metrics + "\n")
 
 try:
     logger.info('Starting main loop')
     while solver.proceed:
+
         timestep = CFL.compute_timestep()
-        if (solver.iteration-1) % 10 == 0:
-            max_Re = flow.max('Re')
-            logger.info('Iteration=%i, Time=%e, dt=%e, max(Re)=%f' %(solver.iteration, solver.sim_time, timestep, max_Re))
+        if (solver.iteration-1) % 100 == 0:
+            x_l2 = flow.volume_integral('x_l2')
+            u_l2 = flow.volume_integral('u_l2')
+            b_l2 = flow.volume_integral('b_l2')
+            # status = 'Iteration=%i, Time=%e, dt=%e, x_l2%f, u_l2%f, b_l2=%f' %(solver.iteration, solver.sim_time, timestep, x_l2, u_l2, b_l2)
+            nums = [solver.iteration, solver.sim_time, timestep, x_l2, u_l2, b_l2]
+            status = 'Iteration={}, Time={}, dt={}, x_l2={}, u_l2={}, b_l2={}'.format(*nums)
+            logger.info(status)
+            with open("status.txt", "a") as file:
+                file.write(status + "\n")
+            with open("data.csv", "a") as file:
+                file.write(str(nums)[1:-1] + "\n")
+            # with open('flow.pick', 'wb') as file:
+            #     pickle.dump(flow, file)
+
         solver.step(timestep)
 except:
     logger.error('Exception raised, triggering end of main loop.')
     raise
+
+
 # finally:
     # solver.log_stats()
