@@ -1,6 +1,6 @@
 #PBS -S /bin/bash
 #PBS -l select=1:ncpus=128:mpiprocs=128:model=rom_ait
-#PBS -l walltime=8:00:00
+#PBS -l walltime=4:00:00
 #PBS -j oe
 #PBS -W group_list=s2276
 file=${0##*/}
@@ -32,7 +32,6 @@ FILE="$(readlink -f "$0")"
 DIR="$(dirname "$(readlink -f "$0")")/"
 MAIN="mri.py"
 
-MPIPROC=128
 
 mkdir $SUFF
 cp $FILE $SUFF
@@ -41,8 +40,9 @@ cp $MAIN $SUFF
 cd $SUFF
 
 mpiexec_mpt -np $MPIPROC python3 $MAIN $CONFIG $DIR $SUFF
-
-# exit 1
+exit 1
+cd ..
+python plot_scalars.py
 # mpiexec_mpt -np $MPIPROC python3 -m dedalus merge_procs scalars_${SUFF} --cleanup
 # exit 1
 # python3 plotting_scripts/plot_kebe.py scalars_${SUFF}/*.h5 --dir=$DIR --config=$CONFIG --suffix=$SUFF

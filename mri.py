@@ -1,12 +1,12 @@
 """
 3D cartesian MRI initial value problem using vector potential formulation
 Usage:
-    mri_vp.py <config_file> <dir> <run_suffix>
+    mri.py <config_file>
 """
 from unicodedata import decimal
 from docopt import docopt
-import time
 from configparser import ConfigParser
+import time
 from pathlib import Path
 import numpy as np
 import os
@@ -26,50 +26,32 @@ sys.path.append('..')
     
 args = docopt(__doc__)
 filename = Path(args['<config_file>'])
-script_dir = args['<dir>']
-run_suffix = args['<run_suffix>']
 
 config = ConfigParser()
 config.read(str(filename))
 
-logger.info('Running mri_vp.py with the following parameters:')
+from read_config import ConfigEval
+try:
+    args = docopt(__doc__)
+    filename = Path(args['<config_file>'])
+except:
+    filename = path + '/config.cfg'
+config = ConfigEval(filename)
+locals().update(config.execute_locals())
+
+logger.info('Running mri.py with the following parameters:')
 param_str = config.items('parameters')
 logger.info(param_str)
 with open("status.txt", "w") as file:
     file.write(str(param_str) + "\n")
-restart = config.getboolean('parameters','restart')
 
-Ny = config.getint('parameters','Ny')
-Ly = eval(config.get('parameters','Ly'))
-
-Nz = config.getint('parameters','Nz')
-Lz = eval(config.get('parameters','Lz'))
-
-Nx = config.getint('parameters','Nx')
-Lx = eval(config.get('parameters','Lx'))
-
-B = config.getfloat('parameters','B')
-
-R      =  config.getfloat('parameters','R')
-q      =  config.getfloat('parameters','q')
-
-nu = config.getfloat('parameters','nu')
-Pm = config.getfloat('parameters','Pm')
+f =  R/np.sqrt(q)
 eta = nu / Pm
-
-S      = -R*np.sqrt(q)
-f      =  R/np.sqrt(q)
-
-tau = config.getfloat('parameters','tau')
-isNoSlip = config.getboolean('parameters','isNoSlip')
-
 ary = Ly / Lx
 arz = Lz / Lx
 
 # Evolution params
-init_timestep = config.getfloat('parameters', 'dt')
-stop_sim_time = config.getfloat('parameters', 'stop_sim_time')
-wall_time = 60. * 60. * config.getfloat('parameters', 'wall_time_hr')
+wall_time = 60. * 60. * wall_time_hr
 dtype = np.float64
 
 ncpu = MPI.COMM_WORLD.size
@@ -167,20 +149,37 @@ lift = lambda A: d3.Lift(A, lift_basis, -1)
 grad_u = d3.grad(u) + ex*lift(tau1u) # First-order reduction
 grad_A = d3.grad(A) + ex*lift(tau1A) # First-order reduction
 grad_phi = d3.grad(phi) + ex*lift(tauphi)
-# curl_Ay = d3.curl(A)@ey + lift(tau1A)@ey # First-order reduction
-# curl_Az = d3.curl(A)@ez + lift(tau1A)@ez # First-order reduction
-# curl_Ax = d3.curl(A)@ex # First-order reduction
 grad_b = d3.grad(b)
 
-A.change_scales(1)
 b = d3.Curl(A).evaluate()
-b.change_scales(1)
-b['g'][1] = 1e0*np.sin(x*np.pi / Lx)
-set_b = True
 
-# problem.parameters['by'] = by
-# problem.parameters['bz'] = bz
-# problem.parameters['bx'] = bx
+A.change_scales(1)
+b.change_scales(1)
+try:
+    b['g'][0] = byg
+except:
+    b['g'][0] = eval(byg)
+try:
+    b['g'][1] = bzg
+except:
+    b['g'][1] = eval(bzg)
+try:
+    b['g'][2] = bxg
+except:
+    b['g'][2] = eval(bxg)
+try:
+    A['g'][0] = Ayg
+except:
+    A['g'][0] = eval(Ayg)
+try:
+    A['g'][1] = Azg
+except:
+    A['g'][1] = eval(Azg)
+try:
+    A['g'][2] = Axg
+except:
+    A['g'][2] = eval(Axg)
+
 if (set_b):
     logger.info('solving bvp for vector potential A given b')
     problem = d3.LBVP(variables=[A, phi, tau1A, tauphi], namespace=locals())
@@ -242,10 +241,10 @@ solver.stop_sim_time = stop_sim_time
 
 fh_mode = 'overwrite'
 
-checkpoint = solver.evaluator.add_file_handler('checkpoint_{}'.format(run_suffix), max_writes=1, sim_dt=10.0)
+checkpoint = solver.evaluator.add_file_handler(suffix + '/checkpoint', max_writes=1, sim_dt=checkpoint_dt)
 checkpoint.add_tasks(solver.state, layout='g')
 
-slicepoints = solver.evaluator.add_file_handler('slicepoints_' + run_suffix, sim_dt=0.1, max_writes=50, mode=fh_mode)
+slicepoints = solver.evaluator.add_file_handler(suffix + '/slicepoints', sim_dt=slicepoint_dt, max_writes=50, mode=fh_mode)
 
 for field, field_name in [(b, 'b'), (u, 'v')]:
     for d2, unit_vec in zip(('x', 'y', 'z'), (ex, ey, ez)):
@@ -276,15 +275,14 @@ try:
     while solver.proceed:
 
         timestep = CFL.compute_timestep()
-        if (solver.iteration-1) % 1 == 0:
+        if (solver.iteration-1) % 100 == 0:
             x_l2 = flow.volume_integral('x_l2')
             u_l2 = flow.volume_integral('u_l2')
             b_l2 = flow.volume_integral('b_l2')
             # status = 'Iteration=%i, Time=%e, dt=%e, x_l2%f, u_l2%f, b_l2=%f' %(solver.iteration, solver.sim_time, timestep, x_l2, u_l2, b_l2)
             nums = [solver.iteration, solver.sim_time, timestep, x_l2, u_l2, b_l2]
             status = 'Iteration={}, Time={}, dt={}, x_l2={}, u_l2={}, b_l2={}'.format(*nums)
-            if (solver.iteration-1) % 10 == 0:
-                logger.info(status)
+            logger.info(status)
 
             with open("status.txt", "a") as file:
                 file.write(status + "\n")
