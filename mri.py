@@ -180,27 +180,27 @@ try:
 except:
     A['g'][2] = eval(Axg)
 
-if (set_b):
-    logger.info('solving bvp for vector potential A given b')
-    problem = d3.LBVP(variables=[A, phi, tau1A, tauphi], namespace=locals())
+# if (set_b):
+#     logger.info('solving bvp for vector potential A given b')
+#     problem = d3.LBVP(variables=[A, phi, tau1A, tauphi], namespace=locals())
 
-    problem.add_equation("trace(grad_A) = 0")
-    problem.add_equation("curl(A) + grad_phi + lift(tau1A) = b")
+#     problem.add_equation("trace(grad_A) = 0")
+#     problem.add_equation("curl(A) + grad_phi + lift(tau1A) = b")
 
-    problem.add_equation("Ay(x='left') = 0", condition="(ny!=0) or (nz!=0)")
-    problem.add_equation("Az(x='left') = 0", condition="(ny!=0) or (nz!=0)")
-    problem.add_equation("Ay(x='right') = 0", condition="(ny!=0) or (nz!=0)")
-    problem.add_equation("Az(x='right') = 0", condition="(ny!=0) or (nz!=0)")
+#     problem.add_equation("Ay(x='left') = 0", condition="(ny!=0) or (nz!=0)")
+#     problem.add_equation("Az(x='left') = 0", condition="(ny!=0) or (nz!=0)")
+#     problem.add_equation("Ay(x='right') = 0", condition="(ny!=0) or (nz!=0)")
+#     problem.add_equation("Az(x='right') = 0", condition="(ny!=0) or (nz!=0)")
 
-    problem.add_equation("Ax(x='left') = 0", condition="(ny==0) and (nz==0)")
-    problem.add_equation("Ay(x='left') = 0", condition="(ny==0) and (nz==0)")
-    problem.add_equation("Az(x='left') = 0", condition="(ny==0) and (nz==0)")
-    problem.add_equation("phi(x='left') = 0", condition="(ny==0) and (nz==0)")
+#     problem.add_equation("Ax(x='left') = 0", condition="(ny==0) and (nz==0)")
+#     problem.add_equation("Ay(x='left') = 0", condition="(ny==0) and (nz==0)")
+#     problem.add_equation("Az(x='left') = 0", condition="(ny==0) and (nz==0)")
+#     problem.add_equation("phi(x='left') = 0", condition="(ny==0) and (nz==0)")
 
-    # Build solver
-    solver = problem.build_solver()
-    solver.solve()
-    logger.info('bvp solved.')
+#     # Build solver
+#     solver = problem.build_solver()
+#     solver.solve()
+#     logger.info('bvp solved.')
 
 
 problem = d3.IVP([p, phi, u, A, taup, tau1u, tau2u, tau1A, tau2A], namespace=locals())
