@@ -1,0 +1,83 @@
+Job 16553566.pbspl1.nas.nasa.gov started on Thu Aug 17 07:17:10 PDT 2023
+The job requested the following resources:
+    ncpus=32
+    place=scatter:excl
+    walltime=02:00:00
+
+PBS set the following environment variables:
+        FORT_BUFFERED = 1
+                   TZ = PST8PDT
+
+On r147i1n19:
+Current directory is /home3/loconno2/htms
+Loading mpi-hpe/mpt
+  Loading requirement: mpi-hpe/mpt.2.28_25Apr23_rhel87
+JOB INITIATED FROM QSUB
+RESOURCES ALLOCATED: 
+OGSUFFIX = nu1en2B1
+config = nu1en2B1/nu1en2B1.cfg
+SUFFIX = nu1en2B1
+2023-08-17 07:17:18,669 read_config 0/32 INFO :: Running mri.py with the following parameters:
+2023-08-17 07:17:18,669 read_config 0/32 INFO :: {'suffix': 'nu1en2B1', 'MPIPROC': 32, 'walltime': '2:00:00', 'nodes': 1, 'ncpus': 32, 'model': 'sky_ele', 'restart': False, 'stop_sim_time': 20.0, 'wall_time_hr': 7.0, 'init_timestep': 0.0002, 'Ny': 32, 'Nz': 128, 'Nx': 128, 'Ly': 2.0, 'Lz': 10.0, 'Lx': 10.0, 'R': 1.1547005383792515, 'q': 0.75, 'nu': 0.01, 'Pm': 1.0, 'set_b': False, 'byg': 0.0, 'bzg': 1.0, 'bxg': 0.0, 'Ayg': 0.0, 'Azg': 0.0, 'Axg': 0.0, 'tau': 0.0, 'B': 0.0, 'isNoSlip': True, 'slicepoint_dt': 0.01, 'checkpoint_dt': 10.0}
+2023-08-17 07:17:18,669 __main__ 0/32 INFO :: Running mri.py with the following parameters:
+2023-08-17 07:17:18,669 __main__ 0/32 INFO :: [('suffix', 'nu1en2B1'), ('MPIPROC', '32'), ('walltime', '2:00:00'), ('nodes', '1'), ('ncpus', '32'), ('model', 'sky_ele'), ('restart', 'False'), ('stop_sim_time', '20.'), ('wall_time_hr', '7.0'), ('init_timestep', '2e-4'), ('Ny', '32'), ('Nz', '128'), ('Nx', '128'), ('Ly', '2.0'), ('Lz', '1.0e1'), ('Lx', '1.0e1'), ('R', '1.1547005383792515'), ('q', '0.75'), ('nu', '1e-2'), ('Pm', '1e0'), ('set_b', 'False'), ('byg', '0.0'), ('bzg', '1.0'), ('bxg', '0.0'), ('Ayg', '0.0'), ('Azg', '0.0'), ('Axg', '0.0'), ('tau', '0.0'), ('B', '0.0'), ('isNoSlip', 'True'), ('slicepoint_dt', '0.01'), ('checkpoint_dt', '10.0')]
+2023-08-17 07:17:18,775 __main__ 0/32 INFO :: running on processor mesh=[8, 4]
+2023-08-17 07:17:21,669 subsystems 0/32 INFO :: Building subproblem matrices 1/32 (~3%) Elapsed: 2s, Remaining: 1m 04s, Rate: 4.8e-01/s
+2023-08-17 07:17:27,686 subsystems 0/32 INFO :: Building subproblem matrices 4/32 (~12%) Elapsed: 8s, Remaining: 57s, Rate: 4.9e-01/s
+2023-08-17 07:17:29,699 subsystems 0/32 INFO :: Building subproblem matrices 5/32 (~16%) Elapsed: 10s, Remaining: 55s, Rate: 4.9e-01/s
+2023-08-17 07:17:35,705 subsystems 0/32 INFO :: Building subproblem matrices 8/32 (~25%) Elapsed: 16s, Remaining: 48s, Rate: 5.0e-01/s
+2023-08-17 07:17:39,708 subsystems 0/32 INFO :: Building subproblem matrices 10/32 (~31%) Elapsed: 20s, Remaining: 44s, Rate: 5.0e-01/s
+2023-08-17 07:17:43,718 subsystems 0/32 INFO :: Building subproblem matrices 12/32 (~38%) Elapsed: 24s, Remaining: 40s, Rate: 5.0e-01/s
+2023-08-17 07:17:49,732 subsystems 0/32 INFO :: Building subproblem matrices 15/32 (~47%) Elapsed: 30s, Remaining: 34s, Rate: 5.0e-01/s
+2023-08-17 07:17:51,736 subsystems 0/32 INFO :: Building subproblem matrices 16/32 (~50%) Elapsed: 32s, Remaining: 32s, Rate: 5.0e-01/s
+2023-08-17 07:17:59,755 subsystems 0/32 INFO :: Building subproblem matrices 20/32 (~62%) Elapsed: 40s, Remaining: 24s, Rate: 5.0e-01/s
+2023-08-17 07:18:07,806 subsystems 0/32 INFO :: Building subproblem matrices 24/32 (~75%) Elapsed: 48s, Remaining: 16s, Rate: 5.0e-01/s
+2023-08-17 07:18:09,816 subsystems 0/32 INFO :: Building subproblem matrices 25/32 (~78%) Elapsed: 50s, Remaining: 14s, Rate: 5.0e-01/s
+2023-08-17 07:18:15,858 subsystems 0/32 INFO :: Building subproblem matrices 28/32 (~88%) Elapsed: 56s, Remaining: 8s, Rate: 5.0e-01/s
+2023-08-17 07:18:19,886 subsystems 0/32 INFO :: Building subproblem matrices 30/32 (~94%) Elapsed: 1m 00s, Remaining: 4s, Rate: 5.0e-01/s
+2023-08-17 07:18:23,900 subsystems 0/32 INFO :: Building subproblem matrices 32/32 (~100%) Elapsed: 1m 04s, Remaining: 0s, Rate: 5.0e-01/s
+2023-08-17 07:18:24,622 __main__ 0/32 INFO :: Starting main loop
+2023-08-17 07:18:32,548 __main__ 0/32 INFO :: Iteration=1, Time=0.0002, dt=0.0002, x_l2=203.9429894045528, u_l2=3.9431007608932394, b_l2=199.99999999999991
+2023-08-17 07:20:42,152 __main__ 0/32 INFO :: Iteration=101, Time=0.22686015624999994, dt=0.0115330078125, x_l2=200.53339130948723, u_l2=0.5333909428874183, b_l2=199.99999999999991
+2023-08-17 07:22:33,312 __main__ 0/32 INFO :: Iteration=201, Time=2.1377467737788574, dt=0.015686770311933985, x_l2=203.38972876107792, u_l2=3.3897267558535393, b_l2=199.99999999999991
+2023-08-17 07:23:31,377 __main__ 0/32 INFO :: Iteration=301, Time=3.7064238049722458, dt=0.015686770311933985, x_l2=203.06636859929014, u_l2=3.066369599737164, b_l2=199.99999999999991
+2023-08-17 07:24:25,035 __main__ 0/32 INFO :: Iteration=401, Time=5.275100836165635, dt=0.015686770311933985, x_l2=203.2414216528296, u_l2=3.2414215486763185, b_l2=199.99999999999991
+2023-08-17 07:25:55,448 __main__ 0/32 INFO :: Iteration=501, Time=6.819014654244629, dt=0.01603885047823846, x_l2=201.9314567681048, u_l2=1.9314568179559597, b_l2=199.99999999999991
+2023-08-17 07:27:36,393 __main__ 0/32 INFO :: Iteration=601, Time=8.382926861727956, dt=0.015138772713395312, x_l2=201.58130636231488, u_l2=1.5813063870603126, b_l2=199.99999999999991
+2023-08-17 07:29:14,144 __main__ 0/32 INFO :: Iteration=701, Time=9.927438333604531, dt=0.014959197624193888, x_l2=201.24531377088775, u_l2=1.2453136948266517, b_l2=199.99999999999991
+2023-08-17 07:30:33,223 __main__ 0/32 INFO :: Iteration=801, Time=11.475724364199685, dt=0.015464727783004336, x_l2=201.32279534827813, u_l2=1.3227953547406606, b_l2=199.99999999999991
+2023-08-17 07:31:24,886 __main__ 0/32 INFO :: Iteration=901, Time=13.022197142500197, dt=0.015464727783004336, x_l2=201.33289116949973, u_l2=1.3328911833314006, b_l2=199.99999999999991
+2023-08-17 07:32:16,031 __main__ 0/32 INFO :: Iteration=1001, Time=14.568669920800708, dt=0.015464727783004336, x_l2=201.32950243018675, u_l2=1.329502473488187, b_l2=199.99999999999991
+2023-08-17 07:33:08,076 __main__ 0/32 INFO :: Iteration=1101, Time=16.11514269910122, dt=0.015464727783004336, x_l2=201.3304614032011, u_l2=1.330461454912539, b_l2=199.99999999999991
+2023-08-17 07:33:58,823 __main__ 0/32 INFO :: Iteration=1201, Time=17.66161547740173, dt=0.015464727783004336, x_l2=201.35777162039872, u_l2=1.3577716828164987, b_l2=199.99999999999991
+2023-08-17 07:34:49,474 __main__ 0/32 INFO :: Iteration=1301, Time=19.208088255702243, dt=0.015464727783004336, x_l2=201.42009232776005, u_l2=1.420092433690545, b_l2=199.99999999999991
+2023-08-17 07:35:15,520 solvers 0/32 INFO :: Simulation stop time reached.
+2023-08-17 07:35:17,612 read_config 0/1 INFO :: Running plot_scalars.py with the following parameters:
+2023-08-17 07:35:17,612 read_config 0/1 INFO :: {'suffix': 'nu1en2B1', 'MPIPROC': 32, 'walltime': '2:00:00', 'nodes': 1, 'ncpus': 32, 'model': 'sky_ele', 'restart': False, 'stop_sim_time': 20.0, 'wall_time_hr': 7.0, 'init_timestep': 0.0002, 'Ny': 32, 'Nz': 128, 'Nx': 128, 'Ly': 2.0, 'Lz': 10.0, 'Lx': 10.0, 'R': 1.1547005383792515, 'q': 0.75, 'nu': 0.01, 'Pm': 1.0, 'set_b': False, 'byg': 0.0, 'bzg': 1.0, 'bxg': 0.0, 'Ayg': 0.0, 'Azg': 0.0, 'Axg': 0.0, 'tau': 0.0, 'B': 0.0, 'isNoSlip': True, 'slicepoint_dt': 0.01, 'checkpoint_dt': 10.0}
+Traceback (most recent call last):
+  File "plot_scalars.py", line 22, in <module>
+    data = np.genfromtxt(filename, delimiter=', ', skip_header=0, dtype=None, encoding='utf-8')
+  File "/home3/loconno2/miniconda3/envs/dedalus3/lib/python3.8/site-packages/numpy/lib/npyio.py", line 1813, in genfromtxt
+    fid = np.lib._datasource.open(fname, 'rt', encoding=encoding)
+  File "/home3/loconno2/miniconda3/envs/dedalus3/lib/python3.8/site-packages/numpy/lib/_datasource.py", line 193, in open
+    return ds.open(path, mode, encoding=encoding, newline=newline)
+  File "/home3/loconno2/miniconda3/envs/dedalus3/lib/python3.8/site-packages/numpy/lib/_datasource.py", line 532, in open
+    raise FileNotFoundError(f"{path} not found.")
+FileNotFoundError: nu1en2B1/data.csv not found.
+
+____________________________________________________________________
+Job Resource Usage Summary for 16553566.pbspl1.nas.nasa.gov
+
+    CPU Time Used            : 09:15:35
+    Real Memory Used         : 36607248kb
+    Walltime Used            : 00:18:05
+    Exit Status              : 1
+
+    Number of CPUs Requested : 32
+    Walltime Requested       : 02:00:00
+
+    Execution Queue          : normal
+    Charged To               : s2276
+
+    Job Stopped              : Thu Aug 17 07:35:20 2023
+____________________________________________________________________

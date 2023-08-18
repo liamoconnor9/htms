@@ -34,4 +34,5 @@ echo $config
 # echo $SKIPSBI
 echo $args
 # exit 1
-bash job_factory.sh $args $config
+source job_factory.sh
+factory $args $config

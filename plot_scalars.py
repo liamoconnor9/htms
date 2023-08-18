@@ -39,9 +39,9 @@ y_data3 = data[1:, -1].astype(float)  # Convert to float for plotting
 
 # Step 4: Plot the data using matplotlib
 plt.figure(figsize=(4,4))
-plt.plot(x_data, y_data1, label=legend_labels[0])
-plt.plot(x_data, y_data2, label=legend_labels[1])
-plt.plot(x_data, y_data3, label=legend_labels[2])
+plt.scatter(x_data, y_data1, label=legend_labels[0])
+plt.scatter(x_data, y_data2, label=legend_labels[1])
+plt.scatter(x_data, y_data3, label=legend_labels[2])
 
 plt.xlabel("time")  # Replace with your x-axis label
 # plt.ylabel("Y Axis Label")  # Replace with your y-axis label

@@ -47,8 +47,6 @@ with open("status.txt", "w") as file:
 
 f =  R/np.sqrt(q)
 eta = nu / Pm
-ary = Ly / Lx
-arz = Lz / Lx
 
 # Evolution params
 wall_time = 60. * 60. * wall_time_hr
@@ -153,55 +151,15 @@ grad_b = d3.grad(b)
 
 b = d3.Curl(A).evaluate()
 
-A.change_scales(1)
 b.change_scales(1)
-try:
-    b['g'][0] = byg
-except:
-    b['g'][0] = eval(byg)
-try:
-    b['g'][1] = bzg
-except:
-    b['g'][1] = eval(bzg)
-try:
-    b['g'][2] = bxg
-except:
-    b['g'][2] = eval(bxg)
-try:
-    A['g'][0] = Ayg
-except:
-    A['g'][0] = eval(Ayg)
-try:
-    A['g'][1] = Azg
-except:
-    A['g'][1] = eval(Azg)
-try:
-    A['g'][2] = Axg
-except:
-    A['g'][2] = eval(Axg)
+b['g'][0] = eval(str(byg))
+b['g'][1] = eval(str(bzg))
+b['g'][2] = eval(str(bxg))
 
-# if (set_b):
-#     logger.info('solving bvp for vector potential A given b')
-#     problem = d3.LBVP(variables=[A, phi, tau1A, tauphi], namespace=locals())
-
-#     problem.add_equation("trace(grad_A) = 0")
-#     problem.add_equation("curl(A) + grad_phi + lift(tau1A) = b")
-
-#     problem.add_equation("Ay(x='left') = 0", condition="(ny!=0) or (nz!=0)")
-#     problem.add_equation("Az(x='left') = 0", condition="(ny!=0) or (nz!=0)")
-#     problem.add_equation("Ay(x='right') = 0", condition="(ny!=0) or (nz!=0)")
-#     problem.add_equation("Az(x='right') = 0", condition="(ny!=0) or (nz!=0)")
-
-#     problem.add_equation("Ax(x='left') = 0", condition="(ny==0) and (nz==0)")
-#     problem.add_equation("Ay(x='left') = 0", condition="(ny==0) and (nz==0)")
-#     problem.add_equation("Az(x='left') = 0", condition="(ny==0) and (nz==0)")
-#     problem.add_equation("phi(x='left') = 0", condition="(ny==0) and (nz==0)")
-
-#     # Build solver
-#     solver = problem.build_solver()
-#     solver.solve()
-#     logger.info('bvp solved.')
-
+A.change_scales(1)
+A['g'][0] = eval(str(Ayg))
+A['g'][1] = eval(str(Azg))
+A['g'][2] = eval(str(Axg))
 
 problem = d3.IVP([p, phi, u, A, taup, tau1u, tau2u, tau1A, tau2A], namespace=locals())
 problem.add_equation("trace(grad_u) + taup = 0")
@@ -267,7 +225,7 @@ flow.add_property(np.sqrt(d3.dot(b, b)), name='b_l2')
 # print(flow.properties.tasks)
 solver.evaluator.evaluate_handlers((flow.properties, ))
 metrics = 'Iteration, Time, dt, x_l2, u_l2, b_l2'
-with open("data.csv", "w") as file:
+with open(suffix + "/data.csv", "w") as file:
     file.write(metrics + "\n")
 
 try:
@@ -284,12 +242,10 @@ try:
             status = 'Iteration={}, Time={}, dt={}, x_l2={}, u_l2={}, b_l2={}'.format(*nums)
             logger.info(status)
 
-            with open("status.txt", "a") as file:
+            with open(suffix + "/status.txt", "a") as file:
                 file.write(status + "\n")
-            with open("data.csv", "a") as file:
+            with open(suffix + "/data.csv", "a") as file:
                 file.write(str(nums)[1:-1] + "\n")
-            # with open('flow.pick', 'wb') as file:
-            #     pickle.dump(flow, file)
 
         solver.step(timestep)
 except:
