@@ -42,8 +42,9 @@ locals().update(config.execute_locals())
 logger.info('Running mri.py with the following parameters:')
 param_str = config.items('parameters')
 logger.info(param_str)
-with open("status.txt", "w") as file:
-    file.write(str(param_str) + "\n")
+if CW.rank == 0:
+    with open("status.txt", "w") as file:
+        file.write(str(param_str) + "\n")
 
 f =  R/np.sqrt(q)
 eta = nu / Pm
@@ -210,6 +211,11 @@ for field, field_name in [(b, 'b'), (u, 'v')]:
         slicepoints.add_task(d3.dot(field, unit_vec)(y = 'center'), name = "{}{}_mid{}".format(field_name, d2, 'y'))
         slicepoints.add_task(d3.dot(field, unit_vec)(z = 'center'), name = "{}{}_mid{}".format(field_name, d2, 'z'))
 
+scalars = solver.evaluator.add_file_handler(suffix + '/scalars', sim_dt=scalar_dt, max_writes=50, mode=fh_mode)
+scalars.add_task(integ(np.sqrt(d3.dot(u, u)) + np.sqrt(d3.dot(b, b))), name='x_l2')
+scalars.add_task(integ(np.sqrt(d3.dot(u, u))), name='u_l2')
+scalars.add_task(integ(np.sqrt(d3.dot(b, b))), name='b_l2')
+
 CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.05,
              max_change=1.5, min_change=0.5)
 CFL.add_velocity(u)
@@ -224,9 +230,9 @@ flow.add_property(np.sqrt(d3.dot(b, b)), name='b_l2')
 # Main loop
 # print(flow.properties.tasks)
 solver.evaluator.evaluate_handlers((flow.properties, ))
-metrics = 'Iteration, Time, dt, x_l2, u_l2, b_l2'
-with open(suffix + "/data.csv", "w") as file:
-    file.write(metrics + "\n")
+# metrics = 'Iteration, Time, dt, x_l2, u_l2, b_l2'
+# with open(suffix + "/data.csv", "w") as file:
+    # file.write(metrics + "\n")
 
 try:
     logger.info('Starting main loop')
@@ -241,11 +247,11 @@ try:
             nums = [solver.iteration, solver.sim_time, timestep, x_l2, u_l2, b_l2]
             status = 'Iteration={}, Time={}, dt={}, x_l2={}, u_l2={}, b_l2={}'.format(*nums)
             logger.info(status)
-
-            with open(suffix + "/status.txt", "a") as file:
-                file.write(status + "\n")
-            with open(suffix + "/data.csv", "a") as file:
-                file.write(str(nums)[1:-1] + "\n")
+            if CW.rank == 0:
+                with open(suffix + "/status.txt", "a") as file:
+                    file.write(status + "\n")
+            # with open(suffix + "/data.csv", "a") as file:
+            #     file.write(str(nums)[1:-1] + "\n")
 
         solver.step(timestep)
 except:

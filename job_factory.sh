@@ -58,6 +58,10 @@ factory () {
     # else
     #     CONFIG="default.cfg"
     # fi
+
+    if ! [ -z $1 ]; then
+        CONFIG=$1
+    fi
     echo "CONFIG: $CONFIG"
 
     if test -f "$DIR$JOB"; then
