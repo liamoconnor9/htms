@@ -43,7 +43,7 @@ logger.info('Running mri.py with the following parameters:')
 param_str = config.items('parameters')
 logger.info(param_str)
 if CW.rank == 0:
-    with open("status.txt", "w") as file:
+    with open(suffix + "/status.txt", "w") as file:
         file.write(str(param_str) + "\n")
 
 f =  R/np.sqrt(q)
