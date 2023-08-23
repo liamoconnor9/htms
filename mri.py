@@ -67,13 +67,20 @@ coords = d3.CartesianCoordinates('y', 'z', 'x')
 dist = d3.Distributor(coords, dtype=dtype, mesh=mesh)
 dealias = 3/2
 
-xbasis = d3.ChebyshevT(coords['x'], size=Nx, bounds=(-Lx / 2.0, Lx / 2.0), dealias=dealias)
-ybasis = d3.RealFourier(coords['y'], size=Ny, bounds=(0, Ly), dealias=dealias)
-zbasis = d3.RealFourier(coords['z'], size=Nz, bounds=(0, Lz), dealias=dealias)
 
-y = dist.local_grid(ybasis)
+zbasis = d3.RealFourier(coords['z'], size=Nz, bounds=(0, Lz), dealias=dealias)
+xbasis = d3.ChebyshevT(coords['x'], size=Nx, bounds=(-Lx / 2.0, Lx / 2.0), dealias=dealias)
+bases = (zbasis, xbasis)
+fbases = (zbasis,)
+
 z = dist.local_grid(zbasis)
 x = dist.local_grid(xbasis)
+
+if not is2D:
+    ybasis = d3.RealFourier(coords['y'], size=Ny, bounds=(0, Ly), dealias=dealias)
+    y = dist.local_grid(ybasis)
+    bases = (ybasis,) + bases
+    fbases = (ybasis,) + fbases
 
 # nccs
 U0 = dist.VectorField(coords, name='U0', bases=xbasis)
@@ -83,21 +90,22 @@ U0['g'][0] = S * x
 fz_hat = dist.VectorField(coords, name='fz_hat', bases=xbasis)
 fz_hat['g'][1] = f
 
+
+
 # Fields
-p = dist.Field(name='p', bases=(ybasis,zbasis,xbasis))
-phi = dist.Field(name='phi', bases=(ybasis,zbasis,xbasis))
-u = dist.VectorField(coords, name='u', bases=(ybasis,zbasis,xbasis))
-A = dist.VectorField(coords, name='A', bases=(ybasis,zbasis,xbasis))
-b = dist.VectorField(coords, name='b', bases=(ybasis,zbasis,xbasis))
+p = dist.Field(name='p', bases=bases)
+phi = dist.Field(name='phi', bases=bases)
+u = dist.VectorField(coords, name='u', bases=bases)
+A = dist.VectorField(coords, name='A', bases=bases)
 
 taup = dist.Field(name='taup')
-tauphi = dist.Field(name='tauphi', bases=(ybasis,zbasis))
+tauphi = dist.Field(name='tauphi', bases=fbases)
 
-tau1u = dist.VectorField(coords, name='tau1u', bases=(ybasis,zbasis))
-tau2u = dist.VectorField(coords, name='tau2u', bases=(ybasis,zbasis))
+tau1u = dist.VectorField(coords, name='tau1u', bases=fbases)
+tau2u = dist.VectorField(coords, name='tau2u', bases=fbases)
 
-tau1A = dist.VectorField(coords, name='tau1A', bases=(ybasis,zbasis))
-tau2A = dist.VectorField(coords, name='tau2A', bases=(ybasis,zbasis))
+tau1A = dist.VectorField(coords, name='tau1A', bases=fbases)
+tau2A = dist.VectorField(coords, name='tau2A', bases=fbases)
 
 # operations
 b = d3.Curl(A)
@@ -140,7 +148,9 @@ dy = lambda A: d3.Differentiate(A, coords['y'])
 dz = lambda A: d3.Differentiate(A, coords['z'])
 dx = lambda A: d3.Differentiate(A, coords['x'])
 
-integ = lambda A: d3.Integrate(d3.Integrate(d3.Integrate(A, 'y'), 'z'), 'x')
+integ = lambda A: d3.Integrate(d3.Integrate(A, 'z'), 'x')
+if not is2D:
+    integ = lambda A: d3.Integrate(integ(A), 'y')
 
 lift_basis = xbasis.derivative_basis(1) # First derivative basis
 lift = lambda A: d3.Lift(A, lift_basis, -1)
@@ -151,10 +161,10 @@ grad_b = d3.grad(b)
 
 # b = d3.Curl(A).evaluate()
 
-b.change_scales(1)
-b['g'][0] = eval(str(byg))
-b['g'][1] = eval(str(bzg))
-b['g'][2] = eval(str(bxg))
+# b.change_scales(1)
+# b['g'][0] = eval(str(byg))
+# b['g'][1] = eval(str(bzg))
+# b['g'][2] = eval(str(bxg))
 
 
 A.change_scales(1)
@@ -208,8 +218,9 @@ slicepoints = solver.evaluator.add_file_handler(suffix + '/slicepoints', sim_dt=
 for field, field_name in [(b, 'b'), (u, 'v')]:
     for d2, unit_vec in zip(('x', 'y', 'z'), (ex, ey, ez)):
         slicepoints.add_task(d3.dot(field, unit_vec)(x = 'center'), name = "{}{}_mid{}".format(field_name, d2, 'x'))
-        slicepoints.add_task(d3.dot(field, unit_vec)(y = 'center'), name = "{}{}_mid{}".format(field_name, d2, 'y'))
         slicepoints.add_task(d3.dot(field, unit_vec)(z = 'center'), name = "{}{}_mid{}".format(field_name, d2, 'z'))
+        if not is2D:
+            slicepoints.add_task(d3.dot(field, unit_vec)(y = 'center'), name = "{}{}_mid{}".format(field_name, d2, 'y'))
 
 scalars = solver.evaluator.add_file_handler(suffix + '/scalars', sim_dt=scalar_dt, max_writes=50, mode=fh_mode)
 scalars.add_task(integ(np.sqrt(d3.dot(u, u)) + np.sqrt(d3.dot(b, b))), name='x_l2')
@@ -218,8 +229,8 @@ scalars.add_task(integ(np.sqrt(d3.dot(b, b))), name='b_l2')
 
 CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.05,
              max_change=1.5, min_change=0.5)
-CFL.add_velocity(u)
-CFL.add_velocity(b)
+# CFL.add_velocity(u)
+# CFL.add_velocity(b)
 
 # Flow properties
 flow = d3.GlobalFlowProperty(solver, cadence=1)

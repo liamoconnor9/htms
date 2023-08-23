@@ -21,13 +21,6 @@ else
     skip_sbi_overwrite=$5
 fi
 
-local=true
-if $local; then
-    MPIPREFFIX="mpirun -n"
-else
-    MPIPREFFIX="mpiexec_mpt -np"
-fi
-
 echo "RESOURCES ALLOCATED: $RLARG"
 # echo "RESOURCE_LIST: $resource_list"
 # echo "ncpus: $ncpus"
@@ -68,12 +61,14 @@ if ! [[ "$suffix" == "$oldsuffix" ]]; then
     exit 1
 fi
 
-echo "SUFFIX = $suffix"
-if [[ "$is2D" == "True" ]]; then
-    eval "$MPIPREFFIX $MPIPROC python3 mri_2d.py $CONFIG"
+if [[ "$local" == "True" ]]; then
+    MPIPREFFIX="mpirun -n"
 else
-    $MPIPREFFIX $MPIPROC python3 mri.py $CONFIG
+    MPIPREFFIX="mpiexec_mpt -np"
 fi
+
+echo "SUFFIX = $suffix"
+$MPIPREFFIX $MPIPROC python3 mri.py $CONFIG
 
 if $PLOT_SCALARS; then
     python plot_scalars.py $CONFIG

@@ -230,8 +230,10 @@ factory () {
                 fi
             done
 
-            read -p "HIT ENTER TO TWEAK SUBMITTED JOB: $suffix"
-            bash CodeConfig.sh $suffix
+            if ! $RUN_DEVEL; then
+                read -p "HIT ENTER TO TWEAK SUBMITTED JOB: $suffix"
+                bash CodeConfig.sh $suffix
+            fi
 
             # qsub -v "suffix=$suffix nodes=$nodes ncpus=$ncpus model=$model walltime=walltime" -N "$suffix" $DIR$suffix.sh
 

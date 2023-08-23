@@ -145,7 +145,7 @@ integ = lambda A: d3.Integrate(d3.Integrate(A, 'z'), 'x')
 
 lift_basis = xbasis.derivative_basis(1) # First derivative basis
 lift = lambda A: d3.Lift(A, lift_basis, -1)
-grad_u = ex*(d3.grad(u)@ex) + ez*(d3.grad(u)@ez) + ex*lift(tau1u) # First-order reduction
+grad_u = d3.grad(u) + ex*lift(tau1u) # First-order reduction
 grad_A = d3.grad(A) + ex*lift(tau1A) # First-order reduction
 grad_phi = d3.grad(phi) + ex*lift(tauphi)
 grad_b = d3.grad(b)
