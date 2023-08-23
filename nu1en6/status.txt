@@ -1,8 +1,3 @@
-[('suffix', 'nu1en6'), ('MPIPROC', '256'), ('walltime', '24:00:00'), ('wall_time_hr', '7.0'), ('nodes', '7'), ('ncpus', '40'), ('model', 'sky_ele'), ('restart', 'False'), ('stop_sim_time', '200.'), ('init_timestep', '2e-4'), ('Ny', '16'), ('Nz', '32'), ('Nx', '32'), ('Ly', '1.0e0'), ('Lz', '1.0e0'), ('Lx', '1.0e0'), ('R', '1.1547005383792515'), ('q', '0.75'), ('nu', '1e-6'), ('Pm', '1e0'), ('set_b', 'False'), ('byg', '0.0'), ('bzg', '1.0e0'), ('bxg', '0.0'), ('Ayg', 'x'), ('Azg', '0.0'), ('Axg', '0.0'), ('tau', '0.0'), ('B', '0.0'), ('isNoSlip', 'True'), ('slicepoint_dt', '0.01'), ('checkpoint_dt', '10.0'), ('scalar_dt', '0.01')]
-Iteration=1, Time=0.0002, dt=0.0002, x_l2=1.001098558085574, u_l2=0.0010985580855745996, b_l2=0.9999999999999993
+[('suffix', 'nu1en6'), ('MPIPROC', '4'), ('walltime', '24:00:00'), ('wall_time_hr', '7.0'), ('nodes', '7'), ('ncpus', '40'), ('model', 'sky_ele'), ('is2D', 'True'), ('restart', 'False'), ('stop_sim_time', '200.'), ('init_timestep', '2e-4'), ('Ny', '16'), ('Nz', '128'), ('Nx', '128'), ('Ly', '1.0e0'), ('Lz', '1.0e0'), ('Lx', '1.0e0'), ('R', '1.1547005383792515'), ('q', '0.75'), ('nu', '1e-4'), ('Pm', '1e0'), ('set_b', 'False'), ('byg', '0.0'), ('bzg', '1.0e0'), ('bxg', '0.0'), ('Ayg', 'x'), ('Azg', '0.0'), ('Axg', '0.0'), ('tau', '0.0'), ('B', '0.0'), ('isNoSlip', 'True'), ('slicepoint_dt', '0.01'), ('checkpoint_dt', '10.0'), ('scalar_dt', '0.01')]
+Iteration=1, Time=0.0002, dt=0.0002, x_l2=1.0011468732475506, u_l2=0.001146873247552138, b_l2=0.9999999999999989
 Iteration=101, Time=0.02019999999999999, dt=0.0002, x_l2=nan, u_l2=nan, b_l2=nan
-Iteration=201, Time=0.04019999999999987, dt=0.0002, x_l2=nan, u_l2=nan, b_l2=nan
-Iteration=301, Time=0.06019999999999975, dt=0.0002, x_l2=nan, u_l2=nan, b_l2=nan
-Iteration=401, Time=0.08020000000000024, dt=0.0002, x_l2=nan, u_l2=nan, b_l2=nan
-Iteration=501, Time=0.10020000000000082, dt=0.0002, x_l2=nan, u_l2=nan, b_l2=nan
-Iteration=601, Time=0.12020000000000139, dt=0.0002, x_l2=nan, u_l2=nan, b_l2=nan

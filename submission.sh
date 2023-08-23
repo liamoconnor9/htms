@@ -21,6 +21,7 @@ else
     skip_sbi_overwrite=$5
 fi
 
+local=true
 if $local; then
     MPIPREFFIX="mpirun -n"
 else
@@ -41,8 +42,8 @@ conda activate dedalus3
 
 # support lots of text output to stdio for analysis
 export MPI_UNBUFFERED_STDIO=true
-alias True=$true
-alias False=$false
+# alias True=$true
+# alias False=$false
 
 DIR="$(dirname "$(readlink -f "$0")")/"
 
@@ -68,7 +69,12 @@ if ! [[ "$suffix" == "$oldsuffix" ]]; then
 fi
 
 echo "SUFFIX = $suffix"
-$MPIPREFFIX $MPIPROC python3 mri_2d.py $CONFIG
+if [[ "$is2D" == "True" ]]; then
+    eval "$MPIPREFFIX $MPIPROC python3 mri_2d.py $CONFIG"
+else
+    $MPIPREFFIX $MPIPROC python3 mri.py $CONFIG
+fi
+
 if $PLOT_SCALARS; then
     python plot_scalars.py $CONFIG
 fi
