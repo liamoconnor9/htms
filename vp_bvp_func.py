@@ -180,8 +180,11 @@ except:
 logger.info('solving bvp for vector potential A given b')
 problem = d3.LBVP(variables=[A, phi, tau1A, tauphi], namespace=locals())
 
-problem.add_equation("trace(grad_A) = 0")
-problem.add_equation("curl(A) + grad_phi + lift(tau1A) = b")
+problem.add_equation((d3.trace(grad_A), 0))
+problem.add_equation((d3.curl(A) + grad_phi + lift(tau1A), b))
+
+# problem.add_equation("trace(grad_A) = 0")
+# problem.add_equation("curl(A) + grad_phi + lift(tau1A) = b")
 
 problem.add_equation("Ay(x='left') = 0", condition="(ny!=0) or (nz!=0)")
 problem.add_equation("Az(x='left') = 0", condition="(ny!=0) or (nz!=0)")
