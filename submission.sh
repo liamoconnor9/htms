@@ -68,7 +68,7 @@ if ! [[ "$suffix" == "$oldsuffix" ]]; then
 fi
 
 echo "SUFFIX = $suffix"
-$MPIPREFFIX $MPIPROC python3 mri.py $CONFIG
+$MPIPREFFIX $MPIPROC python3 mri_2d.py $CONFIG
 if $PLOT_SCALARS; then
     python plot_scalars.py $CONFIG
 fi

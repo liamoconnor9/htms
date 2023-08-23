@@ -17,18 +17,18 @@ import pickle
 import dedalus.public as d3
 from mpi4py import MPI
 import pickle
-
+path = os.path.dirname(os.path.abspath(__file__))
 CW = MPI.COMM_WORLD
 import logging
 import pathlib
 logger = logging.getLogger(__name__)
 sys.path.append('..')
     
-args = docopt(__doc__)
-filename = Path(args['<config_file>'])
+# args = docopt(__doc__)
+# filename = Path(args['<config_file>'])
 
-config = ConfigParser()
-config.read(str(filename))
+# config = ConfigParser()
+# config.read(str(filename))
 
 from read_config import ConfigEval
 try:
@@ -92,12 +92,13 @@ u = dist.VectorField(coords, name='u', bases=bases)
 A = dist.VectorField(coords, name='A', bases=bases)
 b = dist.VectorField(coords, name='b', bases=bases)
 
+zerof = dist.Field(name='zerof')
 taup = dist.Field(name='taup')
-tauphi = dist.Field(name='tauphi', bases=bases)
-tau1u = dist.VectorField(coords, name='tau1u', bases=bases)
-tau2u = dist.VectorField(coords, name='tau2u', bases=bases)
-tau1A = dist.VectorField(coords, name='tau1A', bases=bases)
-tau2A = dist.VectorField(coords, name='tau2A', bases=bases)
+tauphi = dist.Field(name='tauphi', bases=(zbasis,))
+tau1u = dist.VectorField(coords, name='tau1u', bases=(zbasis,))
+tau2u = dist.VectorField(coords, name='tau2u', bases=(zbasis,))
+tau1A = dist.VectorField(coords, name='tau1A', bases=(zbasis,))
+tau2A = dist.VectorField(coords, name='tau2A', bases=(zbasis,))
 
 # operations
 b = d3.Curl(A)
@@ -140,21 +141,21 @@ dy = lambda A: d3.Differentiate(A, coords['y'])
 dz = lambda A: d3.Differentiate(A, coords['z'])
 dx = lambda A: d3.Differentiate(A, coords['x'])
 
-integ = lambda A: d3.Integrate(d3.Integrate(d3.Integrate(A, 'y'), 'z'), 'x')
+integ = lambda A: d3.Integrate(d3.Integrate(A, 'z'), 'x')
 
 lift_basis = xbasis.derivative_basis(1) # First derivative basis
 lift = lambda A: d3.Lift(A, lift_basis, -1)
-grad_u = d3.grad(u) + ex*lift(tau1u) # First-order reduction
+grad_u = ex*(d3.grad(u)@ex) + ez*(d3.grad(u)@ez) + ex*lift(tau1u) # First-order reduction
 grad_A = d3.grad(A) + ex*lift(tau1A) # First-order reduction
 grad_phi = d3.grad(phi) + ex*lift(tauphi)
 grad_b = d3.grad(b)
 
 # b = d3.Curl(A).evaluate()
 
-b.change_scales(1)
-b['g'][0] = eval(str(byg))
-b['g'][1] = eval(str(bzg))
-b['g'][2] = eval(str(bxg))
+# b.change_scales(1)
+# b['g'][0] = eval(str(byg))
+# b['g'][1] = eval(str(bzg))
+# b['g'][2] = eval(str(bxg))
 
 
 A.change_scales(1)
@@ -163,9 +164,9 @@ A['g'][1] = eval(str(Azg))
 A['g'][2] = eval(str(Axg))
 
 problem = d3.IVP([p, phi, u, A, taup, tau1u, tau2u, tau1A, tau2A], namespace=locals())
-problem.add_equation("trace(grad_u) + taup = 0")
-problem.add_equation("trace(grad_A) = 0")
 problem.add_equation("dt(u) + dot(u,grad(U0)) + dot(U0,grad(u)) - nu*div(grad_u) + grad(p) + lift(tau2u) = dot(b, grad_b) - dot(u,grad(u)) - cross(fz_hat, u)")
+problem.add_equation("trace(grad_A) = 0")
+problem.add_equation("trace(grad_u) + taup = 0")
 problem.add_equation("dt(A) + grad(phi) - eta*div(grad_A) + lift(tau2A) = cross(u, b) + cross(U0, b)")
 
 if (isNoSlip):
@@ -208,7 +209,7 @@ slicepoints = solver.evaluator.add_file_handler(suffix + '/slicepoints', sim_dt=
 for field, field_name in [(b, 'b'), (u, 'v')]:
     for d2, unit_vec in zip(('x', 'y', 'z'), (ex, ey, ez)):
         slicepoints.add_task(d3.dot(field, unit_vec)(x = 'center'), name = "{}{}_mid{}".format(field_name, d2, 'x'))
-        slicepoints.add_task(d3.dot(field, unit_vec)(y = 'center'), name = "{}{}_mid{}".format(field_name, d2, 'y'))
+        # slicepoints.add_task(d3.dot(field, unit_vec)(y = 'center'), name = "{}{}_mid{}".format(field_name, d2, 'y'))
         slicepoints.add_task(d3.dot(field, unit_vec)(z = 'center'), name = "{}{}_mid{}".format(field_name, d2, 'z'))
 
 scalars = solver.evaluator.add_file_handler(suffix + '/scalars', sim_dt=scalar_dt, max_writes=50, mode=fh_mode)
@@ -216,10 +217,11 @@ scalars.add_task(integ(np.sqrt(d3.dot(u, u)) + np.sqrt(d3.dot(b, b))), name='x_l
 scalars.add_task(integ(np.sqrt(d3.dot(u, u))), name='u_l2')
 scalars.add_task(integ(np.sqrt(d3.dot(b, b))), name='b_l2')
 
-CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.05,
-             max_change=1.5, min_change=0.5)
-CFL.add_velocity(u)
-CFL.add_velocity(b)
+# CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.05,
+#              max_change=1.5, min_change=0.5)
+
+# CFL.add_velocity(u)
+# CFL.add_velocity(b)
 
 # Flow properties
 flow = d3.GlobalFlowProperty(solver, cadence=1)
@@ -233,12 +235,12 @@ solver.evaluator.evaluate_handlers((flow.properties, ))
 # metrics = 'Iteration, Time, dt, x_l2, u_l2, b_l2'
 # with open(suffix + "/data.csv", "w") as file:
     # file.write(metrics + "\n")
-
+timestep = init_timestep
 try:
     logger.info('Starting main loop')
     while solver.proceed:
 
-        timestep = CFL.compute_timestep()
+        # timestep = CFL.compute_timestep()
         if (solver.iteration-1) % 100 == 0:
             x_l2 = flow.volume_integral('x_l2')
             u_l2 = flow.volume_integral('u_l2')
