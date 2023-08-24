@@ -124,7 +124,6 @@ bx = (b@ex).evaluate()
 
 # Initial conditions
 lshape = dist.grid_layout.local_shape(u.domain, scales=1)
-noise_coeff = 1e-3
 
 rand = np.random.RandomState(seed=23 + CW.rank)
 noise = x * (Lx - x) * noise_coeff * rand.standard_normal(lshape)
@@ -172,7 +171,11 @@ A['g'][0] = eval(str(Ayg))
 A['g'][1] = eval(str(Azg))
 A['g'][2] = eval(str(Axg))
 
-problem = d3.IVP([p, phi, u, A, taup, tau1u, tau2u, tau1A, tau2A], namespace=locals())
+if (solveEVP):
+    problem = d3.EVP([p, phi, u, A, taup, tau1u, tau2u, tau1A, tau2A], namespace=locals())
+else:
+    problem = d3.IVP([p, phi, u, A, taup, tau1u, tau2u, tau1A, tau2A], namespace=locals())
+    
 problem.add_equation("trace(grad_u) + taup = 0")
 problem.add_equation("trace(grad_A) = 0")
 problem.add_equation("dt(u) + dot(u,grad(U0)) + dot(U0,grad(u)) - nu*div(grad_u) + grad(p) + lift(tau2u) = dot(b, grad_b) - dot(u,grad(u)) - cross(fz_hat, u)")
@@ -202,7 +205,7 @@ problem.add_equation("phi(x='left') = 0")
 problem.add_equation("phi(x='right') = 0")
 
 # Solver
-solver = problem.build_solver(d3.SBDF2)
+solver = problem.build_solver(timestepper)
 solver.stop_sim_time = stop_sim_time
 
 # sys.exit()
@@ -227,8 +230,8 @@ scalars.add_task(integ(np.sqrt(d3.dot(u, u)) + np.sqrt(d3.dot(b, b))), name='x_l
 scalars.add_task(integ(np.sqrt(d3.dot(u, u))), name='u_l2')
 scalars.add_task(integ(np.sqrt(d3.dot(b, b))), name='b_l2')
 
-CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.05,
-             max_change=1.5, min_change=0.5)
+# CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.05,
+            #  max_change=1.5, min_change=0.5)
 # CFL.add_velocity(u)
 # CFL.add_velocity(b)
 
@@ -244,12 +247,12 @@ solver.evaluator.evaluate_handlers((flow.properties, ))
 # metrics = 'Iteration, Time, dt, x_l2, u_l2, b_l2'
 # with open(suffix + "/data.csv", "w") as file:
     # file.write(metrics + "\n")
-
+timestep = init_timestep
 try:
     logger.info('Starting main loop')
     while solver.proceed:
 
-        timestep = CFL.compute_timestep()
+        # timestep = CFL.compute_timestep()
         if (solver.iteration-1) % 100 == 0:
             x_l2 = flow.volume_integral('x_l2')
             u_l2 = flow.volume_integral('u_l2')
