@@ -51,7 +51,7 @@ eta = nu / Pm
 
 # Evolution params
 wall_time = 60. * 60. * wall_time_hr
-dtype = np.float64
+# dtype = np.float64
 
 ncpu = MPI.COMM_WORLD.size
 log2 = np.log2(ncpu)
@@ -61,14 +61,23 @@ else:
     logger.error("pretty sure this shouldn't happen... log2(ncpu) is not an int?")
     
 logger.info("running on processor mesh={}".format(mesh))
-
-# Bases
-coords = d3.CartesianCoordinates('y', 'z', 'x')
-dist = d3.Distributor(coords, dtype=dtype, mesh=mesh)
 dealias = 3/2
 
+if (solveEVP):
+    dtype = np.complex128
+else:
+    dtype = np.float64
 
-zbasis = d3.RealFourier(coords['z'], size=Nz, bounds=(0, Lz), dealias=dealias)
+coords = d3.CartesianCoordinates('y', 'z', 'x')
+dist = d3.Distributor(coords, dtype=dtype, mesh=mesh)
+
+# Bases
+Ly, Lz, Lx = eval(str(Ly)), eval(str(Lz)), eval(str(Lx))
+if (solveEVP):
+    Nz = 2
+    zbasis = d3.ComplexFourier(coords['z'], size=Nz, bounds=(0, Lz))
+else:
+    zbasis = d3.RealFourier(coords['z'], size=Nz, bounds=(0, Lz), dealias=dealias)
 xbasis = d3.ChebyshevT(coords['x'], size=Nx, bounds=(-Lx / 2.0, Lx / 2.0), dealias=dealias)
 bases = (zbasis, xbasis)
 fbases = (zbasis,)
@@ -87,12 +96,16 @@ U0 = dist.VectorField(coords, name='U0', bases=xbasis)
 S = 1e0
 U0['g'][0] = S * x
 
+A0 = dist.VectorField(coords, name='A0', bases=xbasis)
+
 fz_hat = dist.VectorField(coords, name='fz_hat', bases=xbasis)
 fz_hat['g'][1] = f
 
-
-
 # Fields
+if (solveEVP):
+    omega = dist.Field(name='omega')
+    dt = lambda A: -1j*omega*A
+
 p = dist.Field(name='p', bases=bases)
 phi = dist.Field(name='phi', bases=bases)
 u = dist.VectorField(coords, name='u', bases=bases)
@@ -109,6 +122,7 @@ tau2A = dist.VectorField(coords, name='tau2A', bases=fbases)
 
 # operations
 b = d3.Curl(A)
+B0 = d3.Curl(A0)
 
 ey = dist.VectorField(coords, name='ey')
 ez = dist.VectorField(coords, name='ez')
@@ -157,6 +171,7 @@ grad_u = d3.grad(u) + ex*lift(tau1u) # First-order reduction
 grad_A = d3.grad(A) + ex*lift(tau1A) # First-order reduction
 grad_phi = d3.grad(phi) + ex*lift(tauphi)
 grad_b = d3.grad(b)
+grad_B0 = d3.grad(B0)
 
 # b = d3.Curl(A).evaluate()
 
@@ -165,21 +180,43 @@ grad_b = d3.grad(b)
 # b['g'][1] = eval(str(bzg))
 # b['g'][2] = eval(str(bxg))
 
+if (solveEVP):
+    A.change_scales(1)
+    A0.change_scales(1)
+    A['g'] = 0.0
 
-A.change_scales(1)
+    A0['g'][0] = eval(str(Ayg))
+    A0['g'][1] = eval(str(Azg))
+    A0['g'][2] = eval(str(Axg))
+else:
+    
+    A.change_scales(1)
+    A0.change_scales(1)
+
+    A0['g'] = 0.0
+    A['g'][0] = eval(str(Ayg))
+    A['g'][1] = eval(str(Azg))
+    A['g'][2] = eval(str(Axg))
+    
 A['g'][0] = eval(str(Ayg))
 A['g'][1] = eval(str(Azg))
 A['g'][2] = eval(str(Axg))
 
 if (solveEVP):
-    problem = d3.EVP([p, phi, u, A, taup, tau1u, tau2u, tau1A, tau2A], namespace=locals())
+    problem = d3.EVP([p, phi, u, A, taup, tau1u, tau2u, tau1A, tau2A], namespace=locals(), eigenvalue=omega)
 else:
     problem = d3.IVP([p, phi, u, A, taup, tau1u, tau2u, tau1A, tau2A], namespace=locals())
     
 problem.add_equation("trace(grad_u) + taup = 0")
 problem.add_equation("trace(grad_A) = 0")
-problem.add_equation("dt(u) + dot(u,grad(U0)) + dot(U0,grad(u)) - nu*div(grad_u) + grad(p) + lift(tau2u) = dot(b, grad_b) - dot(u,grad(u)) - cross(fz_hat, u)")
-problem.add_equation("dt(A) + grad(phi) - eta*div(grad_A) + lift(tau2A) = cross(u, b) + cross(U0, b)")
+# problem.add_equation("dt(u) + dot(u,grad(U0)) + dot(U0,grad(u)) - nu*div(grad_u) + grad(p) + lift(tau2u) = 0")
+# problem.add_equation("dt(A) + grad(phi) - eta*div(grad_A) + lift(tau2A) = 0")
+
+problem.add_equation("dt(u) + dot(u,grad(U0)) + dot(U0,grad(u)) - dot(b,grad(B0)) - dot(B0,grad(b)) - nu*div(grad_u) + grad(p) + cross(fz_hat, u) + lift(tau2u) = 0")
+problem.add_equation("dt(A) + grad(phi) - eta*div(grad_A) + lift(tau2A) - cross(u, B0) - cross(U0, b) = 0")
+
+# problem.add_equation("dt(u) + dot(u,grad(U0)) + dot(U0,grad(u)) - nu*div(grad_u) + grad(p) + lift(tau2u) = dot(b, grad_b) - dot(u,grad(u)) - cross(fz_hat, u)")
+# problem.add_equation("dt(A) + grad(phi) - eta*div(grad_A) + lift(tau2A) = cross(u, b) + cross(U0, b)")
 
 if (isNoSlip):
     # no-slip BCs
@@ -203,6 +240,13 @@ problem.add_equation("dot(A, ey)(x='right') = 0")
 problem.add_equation("dot(A, ez)(x='right') = 0")
 problem.add_equation("phi(x='left') = 0")
 problem.add_equation("phi(x='right') = 0")
+
+if solveEVP:
+    solver = problem.build_solver(entry_cutoff=0)
+    solver.solve_sparse(solver.subproblems[1], NEV, target=0)
+    print('kz = {}, omega = {}'.format(kz, np.max(solver.eigenvalues.imag)))
+    sys.exit()
+   
 
 # Solver
 solver = problem.build_solver(timestepper)
