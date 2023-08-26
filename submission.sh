@@ -68,8 +68,12 @@ else
 fi
 
 echo "SUFFIX = $suffix"
-$MPIPREFFIX $MPIPROC python3 mri.py $CONFIG
-
-if $PLOT_SCALARS; then
-    python plot_scalars.py $CONFIG
+if [[ "$solveEVP" == "True" ]]; then
+    $MPIPREFFIX $MPIPROC python3 mri.py $CONFIG
+else
+    $MPIPREFFIX $MPIPROC python3 mri.py $CONFIG
 fi
+
+# if $PLOT_SCALARS; then
+#     python plot_scalars.py $CONFIG
+# fi

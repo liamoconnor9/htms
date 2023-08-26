@@ -168,11 +168,12 @@ problem.add_equation("integ(p) = 0")
 problem.add_equation("dot(b, ex)(x='left')=0")
 problem.add_equation("dot(b, ex)(x='right')=0")
 
-problem.add_equation("dot(dx(curl(b)), ey)(x='left')=0")
-problem.add_equation("dot(dx(curl(b)), ey)(x='right')=0")
+problem.add_equation("dot(curl(b), ex)(x='left')=0")
+problem.add_equation("dot(curl(b), ex)(x='right')=0")
 
-problem.add_equation("dot(dx(curl(b)), ez)(x='left')=0")
-problem.add_equation("dot(dx(curl(b)), ez)(x='right')=0")
+use divergence condition
+problem.add_equation("dot(dx(curl(b)), ex)(x='left')=0")
+problem.add_equation("dot(dx(curl(b)), ex)(x='right')=0")
 
 solver = problem.build_solver(entry_cutoff=0)
 solver.solve_sparse(solver.subproblems[1], NEV, target=0)
