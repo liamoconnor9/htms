@@ -46,9 +46,6 @@ if CW.rank == 0:
     with open(suffix + "/status.txt", "w") as file:
         file.write(str(param_str) + "\n")
 
-f =  R/np.sqrt(q)
-eta = nu / Pm
-
 # Evolution params
 wall_time = 60. * 60. * wall_time_hr
 # dtype = np.float64
@@ -93,13 +90,16 @@ if not is2D:
 
 # nccs
 U0 = dist.VectorField(coords, name='U0', bases=xbasis)
-S = 1e0
+kx = 2*np.pi / Lx
+S = -R*kx*np.sqrt(q)
+S = -1
 U0['g'][0] = S * x
-
-A0 = dist.VectorField(coords, name='A0', bases=xbasis)
+f =  2
+eta = nu / Pm
 
 fz_hat = dist.VectorField(coords, name='fz_hat', bases=xbasis)
 fz_hat['g'][1] = f
+A0 = dist.VectorField(coords, name='A0', bases=xbasis)
 
 # Fields
 if (solveEVP):
@@ -139,17 +139,18 @@ bx = (b@ex).evaluate()
 # Initial conditions
 lshape = dist.grid_layout.local_shape(u.domain, scales=1)
 
-rand = np.random.RandomState(seed=23 + CW.rank)
-noise = x * (Lx - x) * noise_coeff * rand.standard_normal(lshape)
-u['g'][0] = noise
+# rand = np.random.RandomState(seed=23 + CW.rank)
+# noise = x * (Lx - x) * noise_coeff * rand.standard_normal(lshape)
+# u['g'][0] = noise
 
-rand = np.random.RandomState(seed=23 + CW.rank)
-noise = noise_coeff * rand.standard_normal(lshape)
+# rand = np.random.RandomState(seed=24 + CW.rank)
+# noise = x * (Lx - x) * noise_coeff * rand.standard_normal(lshape)
+# u['g'][1] = noise
+
+rand = np.random.RandomState(seed=25 + CW.rank)
+# noise = x * (Lx - x) * noise_coeff * rand.standard_normal(lshape)
+noise = (x * (Lx - x) + 1e-4*rand.standard_normal(lshape)) * noise_coeff 
 u['g'][1] = noise
-
-rand = np.random.RandomState(seed=23 + CW.rank)
-noise = noise_coeff * rand.standard_normal(lshape)
-u['g'][2] = noise
 
 Ay = A @ ey
 Az = A @ ez
@@ -209,14 +210,9 @@ else:
     
 problem.add_equation("trace(grad_u) + taup = 0")
 problem.add_equation("trace(grad_A) = 0")
-# problem.add_equation("dt(u) + dot(u,grad(U0)) + dot(U0,grad(u)) - nu*div(grad_u) + grad(p) + lift(tau2u) = 0")
-# problem.add_equation("dt(A) + grad(phi) - eta*div(grad_A) + lift(tau2A) = 0")
 
-problem.add_equation("dt(u) + dot(u,grad(U0)) + dot(U0,grad(u)) - dot(b,grad(B0)) - dot(B0,grad(b)) - nu*div(grad_u) + grad(p) + cross(fz_hat, u) + lift(tau2u) = 0")
-problem.add_equation("dt(A) + grad(phi) - eta*div(grad_A) + lift(tau2A) - cross(u, B0) - cross(U0, b) = 0")
-
-# problem.add_equation("dt(u) + dot(u,grad(U0)) + dot(U0,grad(u)) - nu*div(grad_u) + grad(p) + lift(tau2u) = dot(b, grad_b) - dot(u,grad(u)) - cross(fz_hat, u)")
-# problem.add_equation("dt(A) + grad(phi) - eta*div(grad_A) + lift(tau2A) = cross(u, b) + cross(U0, b)")
+problem.add_equation("dt(u) + dot(u,grad(U0)) + dot(U0,grad(u)) - nu*div(grad_u) + grad(p) + cross(fz_hat, u) + lift(tau2u) = dot(b, grad_b) - dot(u,grad(u))")
+problem.add_equation("dt(A) + grad(phi) - eta*div(grad_A) - cross(U0, b) + lift(tau2A) = cross(u, b)")
 
 if (isNoSlip):
     # no-slip BCs
@@ -297,7 +293,7 @@ try:
     while solver.proceed:
 
         # timestep = CFL.compute_timestep()
-        if (solver.iteration-1) % 100 == 0:
+        if (solver.iteration-1) % 1 == 0:
             x_l2 = flow.volume_integral('x_l2')
             u_l2 = flow.volume_integral('u_l2')
             b_l2 = flow.volume_integral('b_l2')

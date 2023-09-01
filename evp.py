@@ -71,10 +71,8 @@ if not is2D:
 
 # nccs
 U0 = dist.VectorField(coords, name='U0', bases=xbasis)
-S = 1e0
+S = -np.pi**2/f
 U0['g'][0] = S * x
-
-A0 = dist.VectorField(coords, name='A0', bases=xbasis)
 
 fz_hat = dist.VectorField(coords, name='fz_hat', bases=xbasis)
 fz_hat['g'][1] = f
@@ -87,6 +85,9 @@ p = dist.Field(name='p', bases=bases)
 phi = dist.Field(name='phi', bases=bases)
 u = dist.VectorField(coords, name='u', bases=bases)
 A = dist.VectorField(coords, name='A', bases=bases)
+b = dist.VectorField(coords, name='b', bases=bases)
+A0 = dist.VectorField(coords, name='A0', bases=xbasis)
+B0 = dist.VectorField(coords, name='B0', bases=xbasis)
 
 taup = dist.Field(name='taup')
 tauphi = dist.Field(name='tauphi')
@@ -121,33 +122,38 @@ dy = lambda A: d3.Differentiate(A, coords['y'])
 dz = lambda A: d3.Differentiate(A, coords['z'])
 dx = lambda A: d3.Differentiate(A, coords['x'])
 
-integ = lambda A: d3.Integrate(d3.Integrate(A, 'z'), 'x')
-if not is2D:
-    integ = lambda A: d3.Integrate(integ(A), 'y')
+if is2D:
+    integ = lambda A: d3.Integrate(d3.Integrate(A, 'z'), 'x')
+else:
+    integ = lambda A: d3.Integrate(d3.Integrate(d3.Integrate(A, 'z'), 'x'), 'y')
 
 lift_basis = xbasis.derivative_basis(1) # First derivative basis
 lift = lambda A: d3.Lift(A, lift_basis, -1)
-b = d3.curl(A).evaluate()
-B0 = d3.curl(A0)
+# b = d3.curl(A)
 grad_u = d3.grad(u) + ex*lift(tau1u) # First-order reduction
 grad_A = d3.grad(A) + ex*lift(tau1A) # First-order reduction
 grad_phi = d3.grad(phi) + ex*lift(tauphi)
 grad_b = d3.grad(b) + ex*lift(tau1b)
-grad_B0 = d3.grad(B0)
 
-A.change_scales(1)
-A0.change_scales(1)
-A['g'] = 0.0
-
-A0['g'][0] = eval(str(Ayg))
-A0['g'][1] = eval(str(Azg))
-A0['g'][2] = eval(str(Axg))
+if set_b:
+    B0['g'][0] = eval(str(byg))
+    B0['g'][1] = eval(str(bzg))
+    B0['g'][2] = eval(str(bxg))
+else:
+    A0.change_scales(1)
+    A0['g'][0] = eval(str(Ayg))
+    A0['g'][1] = eval(str(Azg))
+    A0['g'][2] = eval(str(Axg))
+    B0 = d3.curl(A0)
     
 problem = d3.EVP([p, u, b, taup, tau1u, tau2u, tau1b, tau2b], namespace=locals(), eigenvalue=omega)
 problem.add_equation("trace(grad_u) + taup = 0")
-# problem.add_equation("trace(grad_b) + tauphi = 0")
+# problem.add_equation("div(b) = 0")
 problem.add_equation("dt(u) + dot(u,grad(U0)) + dot(U0,grad_u) - dot(b, grad(B0)) - dot(B0,grad_b) - nu*div(grad_u) + grad(p) + cross(fz_hat, u) + lift(tau2u) = 0")
 problem.add_equation("dt(b) - eta*div(grad_b) + lift(tau2b) - curl(cross(u, B0)) - curl(cross(U0, b)) = 0")
+
+# Pressure gauge
+problem.add_equation("integ(p) = 0") 
 
 if (isNoSlip):
     # no-slip BCs
@@ -162,18 +168,24 @@ else:
     problem.add_equation("dot(dx(u), ez)(x='left') = 0")
     problem.add_equation("dot(dx(u), ez)(x='right') = 0")
 
-# Pressure gauge
-problem.add_equation("integ(p) = 0") 
+if (isConductor):
+    problem.add_equation("dot(b, ex)(x='left')=0")
+    problem.add_equation("dot(b, ex)(x='right')=0")
 
-problem.add_equation("dot(b, ex)(x='left')=0")
-problem.add_equation("dot(b, ex)(x='right')=0")
+    # no current flow into boundary
+    problem.add_equation("dot(curl(b), ex)(x='left')=0")
+    problem.add_equation("dot(curl(b), ex)(x='right')=0")
 
-problem.add_equation("dot(curl(b), ex)(x='left')=0")
-problem.add_equation("dot(curl(b), ex)(x='right')=0")
+    problem.add_equation("dot(dx(curl(b)), ex)(x='left')=0")
+    problem.add_equation("dot(dx(curl(b)), ex)(x='right')=0")
 
-use divergence condition
-problem.add_equation("dot(dx(curl(b)), ex)(x='left')=0")
-problem.add_equation("dot(dx(curl(b)), ex)(x='right')=0")
+    # use divergence condition
+    # problem.add_equation("trace(grad_b)(x='left')=0")
+    # problem.add_equation("trace(grad_b)(x='right')=0")
+
+else:
+    problem.add_equation("curl(b)(x='left')=0")
+    problem.add_equation("curl(b)(x='right')=0")
 
 solver = problem.build_solver(entry_cutoff=0)
 solver.solve_sparse(solver.subproblems[1], NEV, target=0)
