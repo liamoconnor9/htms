@@ -43,7 +43,7 @@ logger.info('Running mri.py with the following parameters:')
 param_str = config.items('parameters')
 logger.info(param_str)
 
-f =  R/np.sqrt(q)
+# f =  R/np.sqrt(q)
 eta = nu / Pm
 
 # Evolution params
@@ -71,7 +71,8 @@ if not is2D:
 
 # nccs
 U0 = dist.VectorField(coords, name='U0', bases=xbasis)
-S = -np.pi**2/f
+S = -1
+f = 2
 U0['g'][0] = S * x
 
 fz_hat = dist.VectorField(coords, name='fz_hat', bases=xbasis)
@@ -150,7 +151,7 @@ problem = d3.EVP([p, u, b, taup, tau1u, tau2u, tau1b, tau2b], namespace=locals()
 problem.add_equation("trace(grad_u) + taup = 0")
 # problem.add_equation("div(b) = 0")
 problem.add_equation("dt(u) + dot(u,grad(U0)) + dot(U0,grad_u) - dot(b, grad(B0)) - dot(B0,grad_b) - nu*div(grad_u) + grad(p) + cross(fz_hat, u) + lift(tau2u) = 0")
-problem.add_equation("dt(b) - eta*div(grad_b) + lift(tau2b) - curl(cross(u, B0)) - curl(cross(U0, b)) = 0")
+problem.add_equation("dt(b) - eta*div(grad_b) + lift(tau2b) + u@grad(B0) + U0@grad_b - b@grad(U0) - B0@grad_u = 0")
 
 # Pressure gauge
 problem.add_equation("integ(p) = 0") 
@@ -173,8 +174,8 @@ if (isConductor):
     problem.add_equation("dot(b, ex)(x='right')=0")
 
     # no current flow into boundary
-    problem.add_equation("dot(curl(b), ex)(x='left')=0")
-    problem.add_equation("dot(curl(b), ex)(x='right')=0")
+    problem.add_equation("div(b)(x='left')=0")
+    problem.add_equation("div(b)(x='right')=0")
 
     problem.add_equation("dot(dx(curl(b)), ex)(x='left')=0")
     problem.add_equation("dot(dx(curl(b)), ex)(x='right')=0")

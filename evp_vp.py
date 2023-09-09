@@ -1,7 +1,7 @@
 """
-3D cartesian MRI initial value problem using vector potential formulation
+cartesian MRI eigen value problem using vector potential formulation
 Usage:
-    mri.py <config_file>
+    evp_vp.py <config_file>
 """
 from unicodedata import decimal
 from docopt import docopt
@@ -68,10 +68,10 @@ if not is2D:
 
 # nccs
 U0 = dist.VectorField(coords, name='U0', bases=xbasis)
-S = -R*kx*np.sqrt(q)
+S = -1
 # S = -np.pi**2/f
 U0['g'][0] = S * x
-f =  R*kx/np.sqrt(q)
+f =  2
 eta = nu / Pm
 
 A0 = dist.VectorField(coords, name='A0', bases=xbasis)
@@ -165,10 +165,17 @@ else:
 
 # Pressure gauge
 problem.add_equation("integ(p) = 0") 
-problem.add_equation("dot(A, ey)(x='left') = 0")
-problem.add_equation("dot(A, ez)(x='left') = 0")
-problem.add_equation("dot(A, ey)(x='right') = 0")
-problem.add_equation("dot(A, ez)(x='right') = 0")
+# problem.add_equation("dot(A, ey)(x='left') = 0")
+# problem.add_equation("dot(A, ez)(x='left') = 0")
+# problem.add_equation("dot(A, ey)(x='right') = 0")
+# problem.add_equation("dot(A, ez)(x='right') = 0")
+
+problem.add_equation("dot(b, ex)(x='left')=0")
+problem.add_equation("dot(b, ex)(x='right')=0")
+
+problem.add_equation("dot(dx(curl(b)), ex)(x='left')=0")
+problem.add_equation("dot(dx(curl(b)), ex)(x='right')=0")
+
 problem.add_equation("phi(x='left') = 0")
 problem.add_equation("phi(x='right') = 0")
 
