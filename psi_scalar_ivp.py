@@ -122,6 +122,7 @@ u = ex*vx + ez*vz
 bx = -dz(a)
 by = b
 bz = dx(a)
+bvec = ex*bx + ez*bz
 
 B = 1
 f = 2
@@ -194,10 +195,10 @@ fh_mode = 'overwrite'
 #             slicepoints.add_task(d3.dot(field, unit_vec)(y = 'center'), name = "{}{}_mid{}".format(field_name, d2, 'y'))
 
 
-CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.05,
-             max_change=1.5, min_change=0.5, max_dt=init_timestep)
+CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.1, threshold=0.01,
+             max_change=2, min_change=0.2, max_dt=init_timestep)
 CFL.add_velocity(u)
-# CFL.add_velocity(b)
+CFL.add_velocity(bvec)
 
 # Flow properties
 flow = d3.GlobalFlowProperty(solver, cadence=1)
