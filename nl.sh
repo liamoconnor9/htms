@@ -74,6 +74,6 @@ else
     $MPIPREFFIX $MPIPROC python3 psi_scalar_ivp.py $CONFIG
 fi
 
-if $PLOT_SCALARS; then
-    python plot_scalars.py $CONFIG
-fi
+# if $PLOT_SCALARS; then
+#     python plot_scalars.py $CONFIG
+# fi

@@ -146,7 +146,6 @@ problem.add_equation("dt(a) - B*dz(psi) - eta*lapa = 0")
 problem.add_equation("dt(v) - (f + S)*dz(psi) - B*dz(b) - nu*div(grad_v) + lift(tauv2) = 0")
 problem.add_equation("dt(lapsi) + f*dz(v) - B*dz(lapa) - nu*laplapsi = 0")
 
-
 problem.add_equation("dx(vy)(x='left') = 0")
 problem.add_equation("dx(vy)(x='right') = 0")
 

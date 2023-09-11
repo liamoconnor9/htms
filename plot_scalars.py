@@ -31,6 +31,10 @@ labels = { 'x_l2' : r'$||\mathbf{u}||_2 + ||\mathbf{b}||_2$',
 # iterate over files in
 # that directory
 labeled=False
+time_lst = []
+x_lst = []
+u_lst = []
+b_lst = []
 for filename in os.listdir(directory):
     f = os.path.join(directory, filename)
     # checking if it is a file
@@ -41,20 +45,46 @@ for filename in os.listdir(directory):
             # Assuming 'data' is the name of the dataset in the .h5 file
             # data = file['tasks'].keys()
             times = file['scales']['sim_time']
-            for key in file['tasks'].keys():
-                # print(np.shape(times))
-                # print(np.shape(file['tasks'][key]))
-                # print(' ')
-                if (not labeled):
-                    plt.scatter(times, file['tasks'][key], label=labels[key], color=colors[key])
-                else:
-                    plt.scatter(times, file['tasks'][key], color=colors[key])
-            # print(np.shape(data))
-            labeled=True
+            time_lst += file['scales']['sim_time'][:].tolist()
+            x_lst += file['tasks']['x_l2'][:].tolist()
+            u_lst += file['tasks']['u_l2'][:].tolist()
+            b_lst += file['tasks']['b_l2'][:].tolist()
+            # sys.exit()
+
+            # for key in file['tasks'].keys():
+            #     # print(np.shape(times))
+            #     # print(np.shape(file['tasks'][key]))
+            #     # print(' ')
+            #     if (not labeled):
+            #         plt.scatter(times, np.log(file['tasks'][key]), label=labels[key], color=colors[key])
+            #     else:
+            #         plt.scatter(times, np.log(file['tasks'][key]), color=colors[key])
+            # # print(np.shape(data))
+            # labeled=True
 
         # Extract x and y values
         # x_values = data[:, 0]
         # y_values = data[:, 1]
+x_lst = np.log(np.array(x_lst).ravel()).tolist()
+u_lst = np.log(np.array(u_lst).ravel()).tolist()
+b_lst = np.log(np.array(b_lst).ravel()).tolist()
+
+zipped_lists = zip(time_lst, x_lst, u_lst, b_lst)
+sorted_lists = sorted(zipped_lists)
+time_srtd, x_srtd, u_srtd, b_srtd = zip(*sorted_lists)
+
+plt.plot(time_srtd, x_srtd, label = labels['x_l2'], color=colors['x_l2'], linewidth=4, linestyle='solid')
+plt.plot(time_srtd, u_srtd, label = labels['u_l2'], color=colors['u_l2'], linewidth=4, linestyle='dashed')
+plt.plot(time_srtd, b_srtd, label = labels['b_l2'], color=colors['b_l2'], linewidth=4, linestyle='dotted')
+
+tlin = time_srtd[200:]
+xlin = x_srtd[200:]
+
+from scipy.stats import linregress
+
+slope, intercept, r_value, p_value, std_err = linregress(tlin, xlin)
+
+print("Slope of the regression line:", slope)
 
 # sys.exit()
 
@@ -78,5 +108,9 @@ plt.xlabel("time")  # Replace with your x-axis label
 # plt.ylabel("Y Axis Label")  # Replace with your y-axis label
 plt.title("MRI norms")  # Replace with your title
 plt.legend()
+# plt.yscale('log')
+
 # plt.grid(True)
-plt.savefig(suffix + '/norms.png')
+outpath = suffix + '/norms.png'
+print("output path: " + outpath)
+plt.savefig(outpath)

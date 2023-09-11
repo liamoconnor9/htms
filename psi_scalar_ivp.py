@@ -24,103 +24,43 @@ import pathlib
 logger = logging.getLogger(__name__)
 sys.path.append('..')
     
-# args = docopt(__doc__)
-# filename = Path(args['<config_file>'])
+args = docopt(__doc__)
+filename = Path(args['<config_file>'])
 
-# config = ConfigParser()
-# config.read(str(filename))
+config = ConfigParser()
+config.read(str(filename))
 
-# from read_config import ConfigEval
-# try:
-#     args = docopt(__doc__)
-#     filename = Path(args['<config_file>'])
-# except:
-#     filename = path + '/config.cfg'
-# config = ConfigEval(filename)
-# locals().update(config.execute_locals())
+from read_config import ConfigEval
+try:
+    args = docopt(__doc__)
+    filename = Path(args['<config_file>'])
+except:
+    filename = path + '/config.cfg'
+config = ConfigEval(filename)
+locals().update(config.execute_locals())
 
-# logger.info('Running mri.py with the following parameters:')
-# param_str = config.items('parameters')
-# logger.info(param_str)
-
-local=False
-# suffix=2Dnu4en6
-
-MPIPROC=1
-# walltime=24:00:00
-wall_time_hr=7.0
-nodes=1
-ncpus=128
-# model=rom_ait
-is2D=True
-restart=False
-stop_sim_time=200.
-
-isNoSlip=False
-isConductor=True
-solveEVP=False
-sparse=True
-ky=0
-kz=0.67
-NEV=10
-
-init_timestep=1e-3
-timestepper=d3.RK222
-
-Ny=16
-Nz=32
-Nx=32
-
-# Ly=1.0e0 * np.pi / ky
-Lz=1.0e0 * np.pi / kz
-Lx=np.pi
-
-R=1.2
-q=0.75
-nu=1e-4
-Pm=1e0
-
-noise_coeff=1e-6
-
-set_b=True
-
-byg=0.0
-bzg=1.0e0
-bxg=0.0
-
-# Ayg=1e0*x
-Azg=0.0
-Axg=0.0
-
-tau=0.0
-B=0.0
-
-slicepoint_dt=100
-checkpoint_dt=10.0
-scalar_dt=0.01
+param_str = config.items('parameters')
+logger.info(param_str)
 
 coords = d3.CartesianCoordinates('z', 'x')
-dtype = np.complex128
+dtype = np.float64
+dealias = 3/2
 dist = d3.Distributor(coords, dtype=dtype)
 
 # Bases
 Lz, Lx = eval(str(Lz)), eval(str(Lx))
-Nz = 2
-# zbasis = d3.ComplexFourier(coords['z'], size=Nz, bounds=(0, Lz))
-xbasis = d3.ChebyshevT(coords['x'], size=Nx, bounds=(-Lx / 2.0, Lx / 2.0))
-bases = (xbasis, )
-fbases = None
+zbasis = d3.RealFourier(coords['z'], size=Nz, bounds=(0, Lz), dealias=dealias)
+xbasis = d3.ChebyshevT(coords['x'], size=Nx, bounds=(-Lx / 2.0, Lx / 2.0), dealias=dealias)
+bases = (xbasis, zbasis)
+fbases = (zbasis, )
 
-# z = dist.local_grid(zbasis)
+z = dist.local_grid(zbasis)
 x = dist.local_grid(xbasis)
 
 # nccs
 eta = nu / Pm
 
-
 # Fields
-omega = dist.Field(name='omega')
-dt = lambda A: -1j*omega*A
 
 b = dist.Field(name='b', bases=bases)
 a = dist.Field(name='a', bases=bases)
@@ -149,9 +89,10 @@ ez['g'][0] = 1
 ex['g'][1] = 1
 
 
-dz = lambda A: 1j*kz*A
+dz = lambda A: d3.Differentiate(A, coords['z'])
+# dz = lambda A: 0*A
 dx = lambda A: d3.Differentiate(A, coords['x'])
-J = lambda P, Q: (dx(P)*dz(Q) - dz(P)*dx(Q))
+J = lambda P, Q: 1*(dx(P)*dz(Q) - dz(P)*dx(Q))
 
 integ = lambda A: d3.Integrate(d3.Integrate(A, 'z'), 'x')
 
@@ -186,17 +127,12 @@ B = 1
 f = 2
 S = -1
 
-problem = d3.EVP([b, a, v, psi, taub1, taub2, taua1, taua2, tauv1, tauv2, taupsi1, taupsi2, taulapsi1, taulapsi2], namespace=locals(), eigenvalue=omega)
+problem = d3.IVP([b, a, v, psi, taub1, taub2, taua1, taua2, tauv1, tauv2, taupsi1, taupsi2, taulapsi1, taulapsi2], namespace=locals())
     
-# problem.add_equation("dt(b) - B*dz(v) + S*dz(a) - eta*div(grad_b) + lift(taub2)= 0")
-# problem.add_equation("dt(a) - B*dz(psi) - eta*lapa = 0")
-# problem.add_equation("dt(v) - (f + S)*dz(psi) - B*dz(b) - nu*div(grad_v) + lift(tauv2) = 0")
-# problem.add_equation("dt(lapsi) + f*dz(v) - B*dz(lapa) - nu*laplapsi = 0")
-
-problem.add_equation("dt(b) - B*dz(v) + S*dz(a) - eta*lapb= 0")
-problem.add_equation("dt(a) - B*dz(psi) - eta*lapa = 0")
-problem.add_equation("dt(v) - (f + S)*dz(psi) - B*dz(b) - nu*lapv = 0")
-problem.add_equation("dt(lapsi) + f*dz(v) - B*dz(lapa) - nu*laplapsi = 0")
+problem.add_equation("dt(b) - B*dz(v) + S*dz(a) - eta*lapb= J(a, v) - J(psi, b)")
+problem.add_equation("dt(a) - B*dz(psi) - eta*lapa = -J(psi, a)")
+problem.add_equation("dt(v) - (f + S)*dz(psi) - B*dz(b) - nu*lapv = J(a, b) - J(psi, v)")
+problem.add_equation("dt(lapsi) + f*dz(v) - B*dz(lapa) - nu*laplapsi = J(a, lapa) - J(psi, lapsi)")
 
 problem.add_equation("dx(vy)(x='left') = 0")
 problem.add_equation("dx(vy)(x='right') = 0")
@@ -204,41 +140,46 @@ problem.add_equation("dx(vy)(x='right') = 0")
 problem.add_equation("dx(vz)(x='left') = 0")
 problem.add_equation("dx(vz)(x='right') = 0")
 
+# impenetrable (flow)
 problem.add_equation("psi(x='left') = 0")
 problem.add_equation("psi(x='right') = 0")
 
+# problem.add_equation("bx(x='left') = 0", condition="nz != 0")
+# problem.add_equation("bx(x='right') = 0", condition="nz != 0")
+
+# no magnetic flux into or out of boundaries
 problem.add_equation("a(x='left') = 0")
 problem.add_equation("a(x='right') = 0")
 
+# x-derivative of x-component of current density = 0
 # problem.add_equation("dx((dy(bz) - dz(by)))(x='left') = 0")
 # problem.add_equation("dx((dy(bz) - dz(by)))(x='right') = 0")
 problem.add_equation("dx((b))(x='left') = 0")
 problem.add_equation("dx((b))(x='right') = 0")
 
-
-solver = problem.build_solver(entry_cutoff=0)
-solver.solve_sparse(solver.subproblems[0], NEV, target=0.0)
-# solver.solve_dense(solver.subproblems[1])
-# print(.tolist())
-maxomega=-1e10
-for val in solver.eigenvalues.imag:
-    if val > 1e6:
-        continue
-    elif maxomega < val:
-        maxomega = val
-
-print('kz = {}, omega = {}'.format(kz, maxomega))
-sys.exit()
    
-
 # Solver
 solver = problem.build_solver(timestepper)
 solver.stop_sim_time = stop_sim_time
 
+
+
+psi.fill_random(seed=1)
+psi.low_pass_filter(scales=0.25)
+psi['g'] += np.sin(x) * np.cos(z*2*np.pi / Lz)
+psi['g'] *= noise_coeff
+# psi['g'] += np.cos(z*2*np.pi / Lz)
+
+a.fill_random(seed=1)
+a.low_pass_filter(scales=0.25)
+a['g'] += np.sin(x) * np.cos(z*2*np.pi / Lz)
+a['g'] *= noise_coeff
+# a['g'] += np.cos(z*2*np.pi / Lz)
+
 # sys.exit()
 # A['g'][0], A['g'][1], A['g'][2] = vp_bvp_func(by, bz, bx)
 
-# fh_mode = 'overwrite'
+fh_mode = 'overwrite'
 
 # checkpoint = solver.evaluator.add_file_handler(suffix + '/checkpoint', max_writes=1, sim_dt=checkpoint_dt)
 # checkpoint.add_tasks(solver.state, layout='g')
@@ -252,10 +193,6 @@ solver.stop_sim_time = stop_sim_time
 #         if not is2D:
 #             slicepoints.add_task(d3.dot(field, unit_vec)(y = 'center'), name = "{}{}_mid{}".format(field_name, d2, 'y'))
 
-# scalars = solver.evaluator.add_file_handler(suffix + '/scalars', sim_dt=scalar_dt, max_writes=50, mode=fh_mode)
-# scalars.add_task(integ(np.sqrt(d3.dot(u, u)) + np.sqrt(d3.dot(b, b))), name='x_l2')
-# scalars.add_task(integ(np.sqrt(d3.dot(u, u))), name='u_l2')
-# scalars.add_task(integ(np.sqrt(d3.dot(b, b))), name='b_l2')
 
 CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.05,
              max_change=1.5, min_change=0.5, max_dt=init_timestep)
@@ -264,9 +201,17 @@ CFL.add_velocity(u)
 
 # Flow properties
 flow = d3.GlobalFlowProperty(solver, cadence=1)
-flow.add_property(np.sqrt(d3.dot(u, u)) + np.sqrt(d3.dot(bvec, bvec)), name='x_l2')
-flow.add_property(np.sqrt(d3.dot(u, u)), name='u_l2')
-flow.add_property(np.sqrt(d3.dot(bvec, bvec)), name='b_l2')
+
+ke = np.sqrt(vz**2 + vx**2 + vy**2)
+be = np.sqrt(bz**2 + bx**2 + by**2)
+flow.add_property(ke + be, name='x_l2')
+flow.add_property(ke, name='u_l2')
+flow.add_property(be, name='b_l2')
+
+scalars = solver.evaluator.add_file_handler(suffix + '/scalars', sim_dt=scalar_dt, max_writes=50, mode=fh_mode)
+scalars.add_task(integ(ke + be), name='x_l2')
+scalars.add_task(integ(ke), name='u_l2')
+scalars.add_task(integ(be), name='b_l2')
 
 # # Main loop
 # # print(flow.properties.tasks)
@@ -280,6 +225,7 @@ try:
     while solver.proceed:
 
         timestep = CFL.compute_timestep()
+        # timestep = 1
         if (solver.iteration-1) % 10 == 0:
             x_l2 = flow.volume_integral('x_l2')
             u_l2 = flow.volume_integral('u_l2')
