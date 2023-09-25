@@ -126,13 +126,13 @@ bvec = ex*bx + ez*bz
 
 B = 1
 f = 2
-S = -1
+S = 1
 
 problem = d3.IVP([b, a, v, psi, taub1, taub2, taua1, taua2, tauv1, tauv2, taupsi1, taupsi2, taulapsi1, taulapsi2], namespace=locals())
     
-problem.add_equation("dt(b) - B*dz(v) + S*dz(a) - eta*lapb= J(a, v) - J(psi, b)")
+problem.add_equation("dt(b) - B*dz(v) - S*dz(a) - eta*lapb= J(a, v) - J(psi, b)")
 problem.add_equation("dt(a) - B*dz(psi) - eta*lapa = -J(psi, a)")
-problem.add_equation("dt(v) - (f + S)*dz(psi) - B*dz(b) - nu*lapv = J(a, b) - J(psi, v)")
+problem.add_equation("dt(v) - (f - S)*dz(psi) - B*dz(b) - nu*lapv = J(a, b) - J(psi, v)")
 problem.add_equation("dt(lapsi) + f*dz(v) - B*dz(lapa) - nu*laplapsi = J(a, lapa) - J(psi, lapsi)")
 
 problem.add_equation("dx(vy)(x='left') = 0")
@@ -182,10 +182,22 @@ a['g'] *= noise_coeff
 
 fh_mode = 'overwrite'
 
-# checkpoint = solver.evaluator.add_file_handler(suffix + '/checkpoint', max_writes=1, sim_dt=checkpoint_dt)
-# checkpoint.add_tasks(solver.state, layout='g')
+checkpoint = solver.evaluator.add_file_handler(suffix + '/checkpoint', max_writes=1, sim_dt=checkpoint_dt)
+checkpoint.add_tasks(solver.state, layout='g')
 
-# slicepoints = solver.evaluator.add_file_handler(suffix + '/slicepoints', sim_dt=slicepoint_dt, max_writes=50, mode=fh_mode)
+
+slicepoints = solver.evaluator.add_file_handler(suffix + '/slicepoints', sim_dt=slicepoint_dt, max_writes=50, mode=fh_mode)
+
+slicepoints.add_task(psi, name="psi")
+slicepoints.add_task(a, name="a")
+
+slicepoints.add_task(vz, name="vz")
+slicepoints.add_task(vx, name="vx")
+slicepoints.add_task(vy, name="vy")
+
+slicepoints.add_task(bz, name="bz")
+slicepoints.add_task(bx, name="bx")
+slicepoints.add_task(by, name="by")
 
 # for field, field_name in [(b, 'b'), (u, 'v')]:
 #     for d2, unit_vec in zip(('x', 'y', 'z'), (ex, ey, ez)):
@@ -195,7 +207,7 @@ fh_mode = 'overwrite'
 #             slicepoints.add_task(d3.dot(field, unit_vec)(y = 'center'), name = "{}{}_mid{}".format(field_name, d2, 'y'))
 
 
-CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.1, threshold=0.01,
+CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.01,
              max_change=2, min_change=0.2, max_dt=init_timestep)
 CFL.add_velocity(u)
 CFL.add_velocity(bvec)
@@ -203,16 +215,26 @@ CFL.add_velocity(bvec)
 # Flow properties
 flow = d3.GlobalFlowProperty(solver, cadence=1)
 
-ke = np.sqrt(vz**2 + vx**2 + vy**2)
-be = np.sqrt(bz**2 + bx**2 + by**2)
+ke = vz**2 + vx**2 + vy**2
+be = bz**2 + bx**2 + by**2
+
 flow.add_property(ke + be, name='x_l2')
 flow.add_property(ke, name='u_l2')
 flow.add_property(be, name='b_l2')
 
 scalars = solver.evaluator.add_file_handler(suffix + '/scalars', sim_dt=scalar_dt, max_writes=50, mode=fh_mode)
-scalars.add_task(integ(ke + be), name='x_l2')
-scalars.add_task(integ(ke), name='u_l2')
-scalars.add_task(integ(be), name='b_l2')
+
+scalars.add_task(integ(ke + be) / Lx / Lz, name='x_l2')
+scalars.add_task(integ(ke) / Lx / Lz, name='u_l2')
+scalars.add_task(integ(be) / Lx / Lz, name='b_l2')
+
+scalars.add_task(integ(vz**2) / Lx / Lz, name='uz_l2')
+scalars.add_task(integ(vx**2) / Lx / Lz, name='ux_l2')
+scalars.add_task(integ(vy**2) / Lx / Lz, name='uy_l2')
+
+scalars.add_task(integ(bz**2) / Lx / Lz, name='bz_l2')
+scalars.add_task(integ(bx**2) / Lx / Lz, name='bx_l2')
+scalars.add_task(integ(by**2) / Lx / Lz, name='by_l2')
 
 # # Main loop
 # # print(flow.properties.tasks)
