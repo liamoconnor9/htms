@@ -19,12 +19,11 @@ import pathlib
 logger = logging.getLogger(__name__)
 sys.path.append('..')
     
-
 R0, R1 = 0.8, 1.0
 Lr = R1 - R0
-Lz = 1
-Nr = 128
-Nz = 128
+Lz = 2
+Nr = 256
+Nz = 512
 f = 0
 nu = 1e-3
 eta = nu
@@ -153,15 +152,15 @@ problem.add_equation("dt(bz) - eta * lap(bz) = -curl_u_cross_bz")
 problem.add_equation("integ(p) = 0")
 
 problem.add_equation("ur(r='left') = 0")
-problem.add_equation("uth(r='left') = 0")
-problem.add_equation("uz(r='left') = 0")
+problem.add_equation("dr(uth)(r='left') = 0")
+problem.add_equation("dr(uz)(r='left') = 0")
 problem.add_equation("br(r='left') = 0")
 problem.add_equation("bth(r='left') = 0")
 problem.add_equation("bz(r='left') = 0")
 
 problem.add_equation("ur(r='right') = 0")
-problem.add_equation("uth(r='right') = 0")
-problem.add_equation("uz(r='right') = 0")
+problem.add_equation("dr(uth)(r='right') = 0")
+problem.add_equation("dr(uz)(r='right') = 0")
 problem.add_equation("br(r='right') = 0")
 problem.add_equation("bth(r='right') = 0")
 problem.add_equation("bz(r='right') = 0")
@@ -172,22 +171,56 @@ init_timestep = 1e-4
 
 # initial conditions
 bz['g'] = 1.0 * (1 + 4*rg**5) / (5*rg**3)
-uth['g'] = -rg
+uth['g'] = 1 / rg
 uz.fill_random()
+uz.low_pass_filter(scales=1/16)
 uz['g'] *= 1e-4
 
 
 # measurements
 cadence = 100
 flow = d3.GlobalFlowProperty(solver, cadence=cadence)
-flow.add_property(ur**2 + uth**2 + uz**2, name='ke')
-flow.add_property(br**2 + bth**2 + bz**2, name='be')
+
+ke = ur**2 + uth**2 + uz**2
+be = br**2 + bth**2 + bz**2
+
+flow.add_property(ke, name='ke')
+flow.add_property(be, name='be')
+
+
+flow.add_property(ke + be, name='x_l2')
+flow.add_property(ke, name='u_l2')
+flow.add_property(be, name='b_l2')
+
+# scalars = solver.evaluator.add_file_handler('scalars', sim_dt=0.01, max_writes=1000, mode='overwrite')
+
+# scalars.add_task(integ(ke + be) / Lr / Lz, name='x_l2')
+# scalars.add_task(integ(ke) / Lr / Lz, name='u_l2')
+# scalars.add_task(integ(be) / Lr / Lz, name='b_l2')
+
+# scalars.add_task(integ(uz**2) / Lr / Lz, name='uz_l2')
+# scalars.add_task(integ(uth**2) / Lr / Lz, name='uth_l2')
+# scalars.add_task(integ(ur**2) / Lr / Lz, name='ur_l2')
+
+# scalars.add_task(integ(bz**2) / Lr / Lz, name='bz_l2')
+# scalars.add_task(integ(bth**2) / Lr / Lz, name='bth_l2')
+# scalars.add_task(integ(br**2) / Lr / Lz, name='br_l2')
+
+slicepoints = solver.evaluator.add_file_handler('slicepoints', sim_dt=0.001, max_writes=50, mode='overwrite')
+
+slicepoints.add_task(uz, name="uz")
+slicepoints.add_task(uth, name="uth")
+slicepoints.add_task(ur, name="ur")
+
+slicepoints.add_task(bz, name="bz")
+slicepoints.add_task(bth, name="bth")
+slicepoints.add_task(br, name="br")
+
 
 CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.01,
              max_change=2, min_change=0.2, max_dt=init_timestep)
 CFL.add_velocity(uvec)
 CFL.add_velocity(bvec)
-
 
 try:
     logger.info('entering main solver loop')
@@ -196,8 +229,8 @@ try:
         if (solver.iteration-1) % cadence == 0:
             msg = ""
             msg += "time = {:.2e}; ".format(solver.sim_time)
-            msg += "avg(ke) = {:.2e}; ".format(flow.volume_integral('ke'))
-            msg += "avg(be) = {:.2e}; ".format(flow.volume_integral('be'))
+            msg += "avg(ke) = {:.2e}; ".format(flow.volume_integral('ke') / Lz / Lr)
+            msg += "avg(be) = {:.2e}; ".format(flow.volume_integral('be') / Lz / Lr)
 
             logger.info(msg)
 

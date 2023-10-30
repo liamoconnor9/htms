@@ -18,12 +18,12 @@ import sys
 logger = logging.getLogger(__name__)
 from pathlib import Path
 
-args = docopt(__doc__)
-filename = Path(args['<config_file>'])
+# args = docopt(__doc__)
+# filename = Path(args['<config_file>'])
 
-from read_config import ConfigEval
-config = ConfigEval(filename)
-locals().update(config.execute_locals())
+# from read_config import ConfigEval
+# config = ConfigEval(filename)
+# locals().update(config.execute_locals())
 
 
 def main(filename, start, count, output):
@@ -61,24 +61,26 @@ def main(filename, start, count, output):
     # Plot writes
     with h5py.File(filename, mode='r') as file:
         for index in range(start, start+count):
-            fig, axs = plt.subplots(1, 2, sharey=True, figsize=(3.2*np.pi, 3*np.pi))
+            fig, axs = plt.subplots(1, 3, sharey=True, figsize=(3.2*np.pi, 3*np.pi))
             # fig, axs = plt.subplots(1, 2)
-            tasks = ['psi', 'a']
+            tasks = ['ur', 'uth', 'uz']
             for n, task in enumerate(tasks):
                 # Build subfigure axes
                 # i, j = divmod(n, ncols)
                 # axes = mfig.add_axes(i, j, [0, 0, 1, 1])
                 # Call plotting helper (dset axes: [t, x, y, z])
-                dset = file['tasks'][task][index, :, :]
-                zplt = file['scales']['z_hash_a71534dafe1e6f1b1cfd5d785ab2bcea22680803']
-                xplt = file['scales']['x_hash_2c2da661fec6aada703e23a5ff6d4878847ba3bd']
+                dset = file['tasks'][task][index, :, :][:, 0, :]
+                z_hash = [key for key in file['scales'] if 'z_hash' in key][0]
+                r_hash = [key for key in file['scales'] if 'r_hash' in key][0]
+                zplt = file['scales'][z_hash]
+                xplt = file['scales'][r_hash]
 
                 pc = axs[n].pcolor(xplt, zplt, dset, cmap='seismic')
                 plt.colorbar(pc, ax=axs[n], orientation='vertical')
                 axs[n].set_title(task)
                 if (n == 0):
                     axs[n].set_ylabel('z')
-                axs[n].set_xlabel('x')
+                axs[n].set_xlabel('r')
                 axs[n].set_aspect('auto')
                 # sys.exit()
                 # image_axes = (1, 3)
@@ -122,7 +124,7 @@ if __name__ == "__main__":
     # arz = Lz / Lx 
 
     # Create output directory if needed
-    output_path = Path(suffix + '/frames')
+    output_path = Path('cyl/frames')
     with Sync() as sync:
         if sync.comm.rank == 0:
             if not output_path.exists():
@@ -130,4 +132,4 @@ if __name__ == "__main__":
 
     import glob
                 
-    post.visit_writes(glob.glob(suffix + '/slicepoints/*.h5'), main, output=output_path)
+    post.visit_writes(glob.glob('cyl/slicepoints/*.h5'), main, output=output_path)

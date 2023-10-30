@@ -1,5 +1,5 @@
 #PBS -S /bin/bash
-#PBS -l select=10:ncpus=28:mpiprocs=28:model=bro
+#PBS -l select=1:ncpus=40:mpiprocs=40:model=sky_ele
 #PBS -l walltime=4:00:00
 #PBS -j oe
 #PBS -W group_list=s2276
@@ -7,9 +7,9 @@ file=${0##*/}
 job_name="${file%.*}"
 #PBS -N ${job_name}
 
-shopt -s expand_aliases
-alias mpiexec_mpt="mpirun"
-alias ffmpeg3="ffmpeg"
+# shopt -s expand_aliases
+# alias mpiexec_mpt="mpirun"
+# alias ffmpeg3="ffmpeg"
 
 export PATH=$HOME/scripts:$PATH
 deactivate
