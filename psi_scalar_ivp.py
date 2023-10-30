@@ -90,9 +90,8 @@ ex['g'][1] = 1
 
 
 dz = lambda A: d3.Differentiate(A, coords['z'])
-# dz = lambda A: 0*A
 dx = lambda A: d3.Differentiate(A, coords['x'])
-J = lambda P, Q: 1*(dx(P)*dz(Q) - dz(P)*dx(Q))
+J = lambda P, Q: dx(P)*dz(Q) - dz(P)*dx(Q)
 
 integ = lambda A: d3.Integrate(d3.Integrate(A, 'z'), 'x')
 
@@ -213,7 +212,7 @@ CFL.add_velocity(u)
 CFL.add_velocity(bvec)
 
 # Flow properties
-flow = d3.GlobalFlowProperty(solver, cadence=1)
+flow = d3.GlobalFlowProperty(solver, cadence=10)
 
 ke = vz**2 + vx**2 + vy**2
 be = bz**2 + bx**2 + by**2
@@ -221,6 +220,8 @@ be = bz**2 + bx**2 + by**2
 flow.add_property(ke + be, name='x_l2')
 flow.add_property(ke, name='u_l2')
 flow.add_property(be, name='b_l2')
+flow.add_property(np.abs(v), name='v')
+max_v = []
 
 scalars = solver.evaluator.add_file_handler(suffix + '/scalars', sim_dt=scalar_dt, max_writes=50, mode=fh_mode)
 
@@ -253,9 +254,11 @@ try:
             x_l2 = flow.volume_integral('x_l2')
             u_l2 = flow.volume_integral('u_l2')
             b_l2 = flow.volume_integral('b_l2')
+            vmax_t = flow.max('v')
+            max_v.append(vmax_t)
             # status = 'Iteration=%i, Time=%e, dt=%e, x_l2%f, u_l2%f, b_l2=%f' %(solver.iteration, solver.sim_time, timestep, x_l2, u_l2, b_l2)
-            nums = [solver.iteration, solver.sim_time, timestep, x_l2, u_l2, b_l2]
-            status = 'Iteration={}, Time={}, dt={}, x_l2={}, u_l2={}, b_l2={}'.format(*nums)
+            nums = [solver.iteration, solver.sim_time, timestep, x_l2, u_l2, b_l2, vmax_t]
+            status = 'Iteration={}, Time={}, dt={}, x_l2={}, u_l2={}, b_l2={}, vmax_t={}'.format(*nums)
             logger.info(status)
             # if CW.rank == 0:
             #     with open(suffix + "/status.txt", "a") as file:
