@@ -1,7 +1,6 @@
 """
-3D cartesian MRI initial value problem using vector potential formulation
 Usage:
-    mri.py <config_file>
+    psi_scalar_ivp.py <config_file>
 """
 from unicodedata import decimal
 from docopt import docopt
