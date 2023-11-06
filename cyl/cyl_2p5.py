@@ -22,8 +22,8 @@ sys.path.append('..')
 R0, R1 = 0.8, 1.0
 Lr = R1 - R0
 Lz = 2
-Nr = 32
-Nz = 32
+Nr = 256
+Nz = 512
 f = 0
 nu = 1e-3
 eta = nu
