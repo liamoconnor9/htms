@@ -22,13 +22,13 @@ sys.path.append('..')
 R0, R1 = 0.8, 1.0
 Lr = R1 - R0
 Lz = 2
-Nr = 256
-Nz = 512
+Nr = 32
+Nz = 32
 f = 0
 nu = 1e-3
 eta = nu
 
-coords = d3.CartesianCoordinates('z', 'theta', 'r')
+coords = d3.CartesianCoordinates('z', 'r')
 dtype = np.float64
 dealias = 3/2
 dist = d3.Distributor(coords, dtype=dtype)
@@ -56,9 +56,11 @@ br = dist.Field(name='br', bases=bases)
 bth = dist.Field(name='bth', bases=bases)
 bz = dist.Field(name='bz', bases=bases)
 p = dist.Field(name='p', bases=bases)
+phi = dist.Field(name='phi', bases=bases)
 
 # tau terms
 tau_p = dist.Field(name='tau_p')
+tau_phi = dist.Field(name='tau_phi')
 
 tau_ur1 = dist.Field(name='tau_ur1', bases=(zbasis, ))
 tau_uth1 = dist.Field(name='tau_uth1', bases=(zbasis, ))
@@ -78,6 +80,7 @@ tau_bz2 = dist.Field(name='tau_bz2', bases=(zbasis, ))
 
 tau_dict = {
     p   : (tau_p, ),
+    phi   : (tau_phi, ),
     ur  : (tau_ur1, tau_ur2),
     uth : (tau_uth1, tau_uth2),
     uz  : (tau_uz1, tau_uz2),
@@ -87,15 +90,18 @@ tau_dict = {
 }
 
 ez = dist.VectorField(coords, name='ez')
-eth = dist.VectorField(coords, name='eth')
 er = dist.VectorField(coords, name='er')
 
 ez['g'][0] = 1
-eth['g'][1] = 1
-er['g'][2] = 1
+er['g'][1] = 1
 
-uvec = uz*ez + ur*er + uth*r*eth
-bvec = bz*ez + br*er + bth*r*eth
+uz_vec = uz * ez
+ur_vec = ur * er
+
+bz_vec = bz * ez
+br_vec = br * er
+
+
 
 lift_basis = rbasis.derivative_basis(1) # First derivative basis
 lift = lambda A: d3.Lift(A, lift_basis, -1)
@@ -107,7 +113,11 @@ for value in tau_dict.values():
 # operators
 dr = lambda A: d3.Differentiate(A, coords['r'])
 dz = lambda A: d3.Differentiate(A, coords['z'])
-lap = lambda A: dr(dr(A) + lift(tau_dict[A][0])) + lift(tau_dict[A][1]) + dz(dz(A)) + (dr(A) + lift(tau_dict[A][0])) / r
+
+lap_r  = lambda A: dz(dz(A)) + r**(-2) * (r*dr(A) - A) + dr(dr(A) + lift(tau_dict[A][0])) + lift(tau_dict[A][1])
+lap_th = lambda A: dz(dz(A)) + r**(-2) * (r*dr(A) - A) + dr(dr(A) + lift(tau_dict[A][0])) + lift(tau_dict[A][1])
+lap_z  = lambda A: dz(dz(A)) + r**(-1) * dr(A)         + dr(dr(A) + lift(tau_dict[A][0])) + lift(tau_dict[A][1])
+
 integ = lambda A: d3.Integrate(d3.Integrate(A, 'z'), 'r')
 
 # advective terms 
@@ -125,31 +135,35 @@ curl_u_cross_br = -uz * dz(br) + ur * dz(bz) + bz * dz(ur) - br * dz(uz)
 curl_u_cross_bth = uth * dz(bz) - uz * dz(bth) - bth * dz(uz) + bz * dz(uth) + uth * dz(br) - ur * dr(bth) - bth * dr(ur) + br * dr(uth)
 curl_u_cross_bz = (br * uz - bz * ur) / r + uz * dr(br) - ur * dr(bz) - bz * dr(ur) + br * dr(uz)
 
-problem = d3.IVP([ur, uth, uz, br, bth, bz, p] + list(taus), namespace=locals())
+problem = d3.IVP([ur, uth, uz, br, bth, bz, p, phi] + list(taus), namespace=locals())
 
 # incomp.
-problem.add_equation("ur + r*dz(uz) + r*dr(ur) + tau_p = 0") 
+problem.add_equation("ur + r*dz(uz) + r*dr(ur) + tau_p   = 0") 
 
 # momentum-r
-problem.add_equation("dt(ur) + dr(p) - f * uth - nu * lap(ur) = b_dg_b_r - u_dg_u_r")
+problem.add_equation("r**2 * (dt(ur) + dr(p) - nu * lap_r(ur))    = r**2 * (b_dg_b_r - u_dg_u_r)")
 
 # momentum-theta
-problem.add_equation("dt(uth) + f * ur - nu * lap(uth) = b_dg_b_th - u_dg_u_th")
+problem.add_equation("r    * (dt(uth)        - nu * lap_th(uth))  = r    * (b_dg_b_th - u_dg_u_th)")
 
 # momentum-z
-problem.add_equation("dt(uz) + dz(p) - nu * lap(uz) = b_dg_b_z - u_dg_u_z")
+problem.add_equation("r**2 * (dt(uz) + dz(p) - nu * lap_z(uz))    = r**2 * (b_dg_b_z - u_dg_u_z)")
+
+# div(b) = 0
+problem.add_equation("br + r*dz(bz) + r*dr(br) + tau_phi = 0") 
 
 # induction-r
-problem.add_equation("dt(br) - eta * lap(br) = -curl_u_cross_br")
+problem.add_equation("r**2 * (dt(br) + dr(phi) - eta * lap_r(br)) = r**2 * (-curl_u_cross_br)")
 
 # induction-theta
-problem.add_equation("dt(bth) - eta * lap(bth) = -curl_u_cross_bth")
+problem.add_equation("r    * (dt(bth)        - eta * lap_th(bth)) = r    * (-curl_u_cross_bth)")
 
 # induction-z
-problem.add_equation("dt(bz) - eta * lap(bz) = -curl_u_cross_bz")
+problem.add_equation("r**2 * (dt(bz) + dz(phi) - eta * lap_z(bz)) = r**2 * (-curl_u_cross_bz)")
 
 # pressure gauge
 problem.add_equation("integ(p) = 0")
+problem.add_equation("integ(phi) = 0")
 
 # stress free
 problem.add_equation("ur(r='left') = 0")
@@ -223,8 +237,12 @@ slicepoints.add_task(br, name="br")
 
 CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.01,
              max_change=2, min_change=0.2, max_dt=init_timestep)
-CFL.add_velocity(uvec)
-CFL.add_velocity(bvec)
+
+CFL.add_velocity(uz_vec)
+CFL.add_velocity(ur_vec)
+
+CFL.add_velocity(bz_vec)
+CFL.add_velocity(br_vec)
 
 try:
     logger.info('entering main solver loop')
