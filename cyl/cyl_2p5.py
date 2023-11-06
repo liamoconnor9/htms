@@ -176,10 +176,9 @@ problem.add_equation("ur(r='right') = 0")
 problem.add_equation("dr(uth)(r='right') = 0")
 problem.add_equation("dr(uz)(r='right') = 0")
 
-
 problem.add_equation("br(r='left') = 0")
 problem.add_equation("dr(bth)(r='left') = 0")
-problem.add_equation("dr(bz)(r='left') = 0")
+problem.add_equation("phi(r='left') = 0")
 
 problem.add_equation("br(r='right') = 0")
 problem.add_equation("dr(bth)(r='right') = 0")

@@ -84,9 +84,9 @@ tau_dict = {
     ur  : (tau_ur1, tau_ur2),
     uth : (tau_uth1, tau_uth2),
     uz  : (tau_uz1, tau_uz2),
-    br  : (tau_Ar1, tau_Ar2),
-    bth : (tau_Ath1, tau_Ath2),
-    bz  : (tau_Az1, tau_Az2),
+    Ar  : (tau_Ar1, tau_Ar2),
+    Ath : (tau_Ath1, tau_Ath2),
+    Az  : (tau_Az1, tau_Az2),
 }
 
 ez = dist.VectorField(coords, name='ez')
@@ -137,7 +137,7 @@ curl_u_cross_bz = (br * uz - bz * ur) / r + uz * dr(br) - ur * dr(bz) - bz * dr(
 problem = d3.IVP([ur, uth, uz, Ar, Ath, Az, p, phi] + list(taus), namespace=locals())
 
 # incomp.
-problem.add_equation("ur / r + dz(uz) + dr(ur) + tau_p = 0") 
+problem.add_equation("ur + r*dz(uz) + r*dr(ur) + tau_p = 0") 
 
 # momentum-r
 problem.add_equation("dt(ur) + dr(p) - f * uth - nu * lap(ur) = b_dg_b_r - u_dg_u_r")
@@ -147,6 +147,9 @@ problem.add_equation("dt(uth) + f * ur - nu * lap(uth) = b_dg_b_th - u_dg_u_th")
 
 # momentum-z
 problem.add_equation("dt(uz) + dz(p) - nu * lap(uz) = b_dg_b_z - u_dg_u_z")
+
+# coulomb gauge.
+problem.add_equation("Ar + r*dz(Az) + r*dr(Ar) = 0") 
 
 # induction-r
 problem.add_equation("dt(Ar) + dr(phi) - eta * lap(Ar) = -curl_u_cross_br")
