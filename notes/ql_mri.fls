@@ -1,9 +1,9 @@
-PWD /home/liamo/notes
+PWD /home/liamo/htms/notes
 INPUT /etc/texmf/web2c/texmf.cnf
 INPUT /usr/share/texmf/web2c/texmf.cnf
 INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
 INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
-INPUT /home/liamo/notes/ql_mri.tex
+INPUT /home/liamo/htms/notes/ql_mri.tex
 OUTPUT ql_mri.log
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/article.cls

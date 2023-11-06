@@ -216,4 +216,46 @@ The feedback terms from the previous subsection allow us to compute the variatio
   A &= \sqrt{\frac{\left(\frac{\pi^2}{2d} + k_z^2\frac{d}{2} + V\frac{d}{2}\right)}{\frac{3\pi^2}{8d}\Omega B^{-2}\left(\kappa + \Omega + \frac{3S}{2}\right)}}
 \end{align*}
 
+\subsection{Cylindrical Geometry}
+First we will implement the vector-potential formulation. Let the magnetic field $\vec{b}=b_r\vec{\hat{r}}+b_{\theta}\vec{\hat{\theta}}+b_z\vec{\hat{z}}$ be the curl of some divergence-free vector potential $\vec{A} = A_r\vec{\hat{r}} + A_{\theta}\vec{\hat{\theta}} + A_z\vec{\hat{z}}$, such that
+\begin{align*}
+  \vec{b} &= \grad\times\vec{A} \\
+  b_r &= r^{-1}\partial_{\theta}A_z-\partial_zA_{\theta}\\
+  b_{\theta} &= \partial_zA_r - \partial_rA_z \\
+  b_z &= \partial_zA_{\theta} - r^{-1}\partial_{\theta}A_r + r^{-1}A_{\theta}
+  \intertext{Assuming we have axisymmetry ($\partial_{\theta}\to 0$)}
+  b_r &= -\partial_zA_{\theta}\\
+  b_{\theta} &= \partial_zA_r - \partial_rA_z \\
+  b_z &= \partial_zA_{\theta} + r^{-1}A_{\theta}
+  \intertext{Thus, at $t=0$, we set}
+  A_{\theta} &= rb_z|_{t=0} = rB_1 \frac{1+4(r/r_1)^5}{5(r/r_1)^3}
+  \intertext{For $B_1=1$ and $r_1=1$,}
+  A_{\theta} &= \frac{1+4r^5}{5r^2}
+\end{align*}
+
+\subsubsection{Scalar Potential}
+First, define the velocity and magnetic flux as follows
+\begin{align*}
+  \vec{u} &= -\partial_z\psi\vec{\hat{r}} + v\vec{\hat{\theta}} + \partial_r\psi\vec{\hat{z}} \\
+  \vec{b} &= -\partial_z a\vec{\hat{r}} + b\vec{\hat{\theta}} + \partial_r a\vec{\hat{z}}.
+\end{align*}
+\begin{align*}
+\intertext{Inserting this expression for velocity into the $\theta$-component of the momentum equation gives}
+  \partial_t v + \nu\left( r^{-2}v - r^{-1}\partial_rv  - \partial_r^2v - \partial_z^2v \right) = r^{-1}\left( v\partial_z\psi - b\partial_za \right) + \partial_zb\partial_ra - \partial_za\partial_rb + \partial_z\psi\partial_rv - \partial_zv\partial_r\psi \\
+  \partial_t v + \nu\left( r^{-2}v - r^{-1}\partial_rv  - \partial_r^2v - \partial_z^2v \right) = r^{-1}\left( v\partial_z\psi - b\partial_za \right) + \partial_zb\partial_ra - \partial_za\partial_rb + \partial_z\psi\partial_rv - \partial_zv\partial_r\psi \\
+  \intertext{Then, taking the $\theta$-component of the curl of the vector momentum equation gives the following equation for $\grad^2\psi$}
+  \partial_t\grad^2\psi + \nu \left(\partial_z^2\psi/r^2-\partial_z^4\psi-\partial_r\partial_z^2\psi/r+\partial_r^2\psi/r^2-2 \partial_r^2\partial_z^2\psi - \partial_r^3\psi/r-\partial_r^4\psi \right)\quad\quad \\
+  -((2 b \partial_zb)/r)+(2 v \partial_z v)/r-\partial_z\psi \partial_r\partial_z^2\psi - \partial_ra \partial_z^3a+ \partial_ra \partial_r^2\partial_za + \partial_r\psi \partial_z^3\psi + \partial_r\psi \partial_r^2\partial_z\psi + \partial_z a (\partial_r\partial_z^2a+\partial_r^3a)-\partial_z\psi \partial_r^3\psi \\ 
+  % \grad^2f(r,z) &= r^{-1}\partial_r (r\partial_r f) + \partial_z^2f\\
+  % &= r^{-1}\partial_r f + \partial_r^2 f + \partial_z^2f\\
+  % \intertext{implies}
+  % \grad^2f(r,z) &= \grad^2\grad^2f(r,z) \\ 
+  % &= r^{-1}\partial_r (r^{-1}\partial_r f + \partial_r^2 f + \partial_z^2f)\\
+  % &\quad + \partial_r^2 (r^{-1}\partial_r f + \partial_r^2 f + \partial_z^2f)\\
+  % &\quad + \partial_z^2 (r^{-1}\partial_r f + \partial_r^2 f + \partial_z^2f)\\
+  % &= r^{-2}\partial_r^2 f - r^{-3}\partial_r f + r^{-1}\partial_r^3 f + r^{-1}\partial_r\partial_z^2f \\
+  % &\quad + r^{-1}\partial_r^3 f - r^{-2}\partial_r^2 f - r^{-2}\partial_r^2 f + 2r^{-3}\partial_r f + \partial_r^4 f + \partial_r^2\partial_z^2f\\
+  % &\quad + r^{-1}\partial_r\partial_z^2 f + \partial_r^2\partial_z^2 f + \partial_z^4f\\
+\end{align*}
+
 \end{document}
