@@ -28,7 +28,7 @@ f = 0
 nu = 1e-3
 eta = nu
 
-coords = d3.CartesianCoordinates('z', 'theta', 'r')
+coords = d3.CartesianCoordinates('z', 'r')
 dtype = np.float64
 dealias = 3/2
 dist = d3.Distributor(coords, dtype=dtype)
@@ -60,7 +60,7 @@ phi = dist.Field(name='phi', bases=bases)
 
 # tau terms
 tau_p = dist.Field(name='tau_p')
-tau_phi = dist.Field(name='tau_phi', bases=(zbasis, ))
+tau_phi = dist.Field(name='tau_phi')
 
 tau_ur1 = dist.Field(name='tau_ur1', bases=(zbasis, ))
 tau_uth1 = dist.Field(name='tau_uth1', bases=(zbasis, ))
@@ -89,14 +89,6 @@ tau_dict = {
     Az  : (tau_Az1, tau_Az2),
 }
 
-ez = dist.VectorField(coords, name='ez')
-eth = dist.VectorField(coords, name='eth')
-er = dist.VectorField(coords, name='er')
-
-ez['g'][0] = 1
-eth['g'][1] = 1
-er['g'][2] = 1
-
 lift_basis = rbasis.derivative_basis(1) # First derivative basis
 lift = lambda A: d3.Lift(A, lift_basis, -1)
 
@@ -107,7 +99,6 @@ for value in tau_dict.values():
 # operators
 dr = lambda A: d3.Differentiate(A, coords['r'])
 dz = lambda A: d3.Differentiate(A, coords['z'])
-lap = lambda A: dr(dr(A) + lift(tau_dict[A][0])) + lift(tau_dict[A][1]) + dz(dz(A)) + (dr(A) + lift(tau_dict[A][0])) / r
 integ = lambda A: d3.Integrate(d3.Integrate(A, 'z'), 'r')
 
 # substitutions
@@ -115,9 +106,21 @@ br = -dz(Ath)
 bth = dz(Ar) - dr(Az)
 bz = Ath / r + dr(Ath)
 
-bvec = bz*ez + br*er + bth*r*eth
-uvec = uz*ez + ur*er + uth*r*eth
+ez = dist.VectorField(coords, name='ez')
+er = dist.VectorField(coords, name='er')
 
+ez['g'][0] = 1
+er['g'][1] = 1
+
+uz_vec = uz * ez
+ur_vec = ur * er
+
+bz_vec = bz * ez
+br_vec = br * er
+
+lap_r  = lambda A: dz(dz(A)) + r**(-2) * (r*dr(A) - A) + dr(dr(A) + lift(tau_dict[A][0])) + lift(tau_dict[A][1])
+lap_th = lambda A: dz(dz(A)) + r**(-2) * (r*dr(A) - A) + dr(dr(A) + lift(tau_dict[A][0])) + lift(tau_dict[A][1])
+lap_z  = lambda A: dz(dz(A)) + r**(-1) * dr(A)         + dr(dr(A) + lift(tau_dict[A][0])) + lift(tau_dict[A][1])
 
 # advective terms 
 u_dg_u_r = -uth**2 / r + uz * dz(ur) + ur * dr(ur)
@@ -130,38 +133,44 @@ b_dg_b_th = br * bth / r + bz * dz(bth) + br * dr(bth)
 b_dg_b_z = bz * dz(bz) + br * dr(bz)
 
 # inductive terms 
-curl_u_cross_br = -uz * dz(br) + ur * dz(bz) + bz * dz(ur) - br * dz(uz)
-curl_u_cross_bth = uth * dz(bz) - uz * dz(bth) - bth * dz(uz) + bz * dz(uth) + uth * dz(br) - ur * dr(bth) - bth * dr(ur) + br * dr(uth)
-curl_u_cross_bz = (br * uz - bz * ur) / r + uz * dr(br) - ur * dr(bz) - bz * dr(ur) + br * dr(uz)
+u_cross_br  = bz  * uth - bth * uz
+u_cross_bth = br  * uz  - bz  * ur
+u_cross_bz  = bth * ur  - br  * uth
+
+# curl_u_cross_br = -uz * dz(br) + ur * dz(bz) + bz * dz(ur) - br * dz(uz)
+# curl_u_cross_bth = uth * dz(bz) - uz * dz(bth) - bth * dz(uz) + bz * dz(uth) + uth * dz(br) - ur * dr(bth) - bth * dr(ur) + br * dr(uth)
+# curl_u_cross_bz = (br * uz - bz * ur) / r + uz * dr(br) - ur * dr(bz) - bz * dr(ur) + br * dr(uz)
 
 problem = d3.IVP([ur, uth, uz, Ar, Ath, Az, p, phi] + list(taus), namespace=locals())
 
 # incomp.
-problem.add_equation("ur + r*dz(uz) + r*dr(ur) + tau_p = 0") 
+problem.add_equation("ur/r + dz(uz) + dr(ur) + tau_p     = 0") 
 
 # momentum-r
-problem.add_equation("dt(ur) + dr(p) - f * uth - nu * lap(ur) = b_dg_b_r - u_dg_u_r")
+problem.add_equation("r**0 * (dt(ur) + dr(p) - nu * lap_r(ur))      = r**0 * (b_dg_b_r - u_dg_u_r)")
 
 # momentum-theta
-problem.add_equation("dt(uth) + f * ur - nu * lap(uth) = b_dg_b_th - u_dg_u_th")
+problem.add_equation("r**0 * (dt(uth)        - nu * lap_th(uth))    = r**0 * (b_dg_b_th - u_dg_u_th)")
 
 # momentum-z
-problem.add_equation("dt(uz) + dz(p) - nu * lap(uz) = b_dg_b_z - u_dg_u_z")
+problem.add_equation("r**0 * (dt(uz) + dz(p) - nu * lap_z(uz))      = r**0 * (b_dg_b_z - u_dg_u_z)")
+
 
 # coulomb gauge.
-problem.add_equation("Ar + r*dz(Az) + r*dr(Ar) = 0") 
+problem.add_equation("Ar/r + dz(Az) + dr(Ar) = 0") 
 
 # induction-r
-problem.add_equation("dt(Ar) + dr(phi) - eta * lap(Ar) = -curl_u_cross_br")
+problem.add_equation("r**0 * (dt(Ar) + dr(phi) - eta * lap_r(Ar))   = r**0 * u_cross_br")
 
 # induction-theta
-problem.add_equation("dt(Ath) - eta * lap(Ath) = -curl_u_cross_bth")
+problem.add_equation("r**0 * (dt(Ath)          - eta * lap_th(Ath)) = r**0 * u_cross_bth")
 
 # induction-z
-problem.add_equation("dt(Az) + dz(phi) - eta * lap(Az) = -curl_u_cross_bz")
+problem.add_equation("r**0 * (dt(Az) + dz(phi) - eta * lap_z(Az))   = r**0 * u_cross_bz")
 
 # pressure gauge
 problem.add_equation("integ(p) = 0")
+# problem.add_equation("integ(phi) = 0")
 
 # stress free
 problem.add_equation("ur(r='left') = 0")
@@ -186,8 +195,9 @@ solver.stop_sim_time = 10
 init_timestep = 3e-4
 
 # initial conditions
-bz['g'] = 1.0 * (1 + 4*rg**5) / (5*rg**3)
-uth['g'] = 1 / rg
+# bz['g'] = 1.0 * (1 + 4*rg**5) / (5*rg**3)
+# Ath['g'] = (1 + 4*rg**5) / (5*rg**2)
+# uth['g'] = 1 / rg
 uz.fill_random()
 uz.low_pass_filter(scales=1/16)
 uz['g'] *= 1e-4
@@ -235,8 +245,12 @@ slicepoints.add_task(br, name="br")
 
 CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.01,
              max_change=2, min_change=0.2, max_dt=init_timestep)
-CFL.add_velocity(uvec)
-CFL.add_velocity(bvec)
+
+CFL.add_velocity(uz_vec)
+CFL.add_velocity(ur_vec)
+
+CFL.add_velocity(bz_vec)
+CFL.add_velocity(br_vec)
 
 try:
     logger.info('entering main solver loop')

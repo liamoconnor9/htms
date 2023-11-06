@@ -141,27 +141,35 @@ problem = d3.IVP([ur, uth, uz, br, bth, bz, p, phi] + list(taus), namespace=loca
 
 # incomp.
 problem.add_equation("ur + r*dz(uz) + r*dr(ur) + tau_p   = 0") 
+# problem.add_equation("ur + r*dz(uz) + r*dr(ur) + tau_p   = 0") 
 
 # momentum-r
 problem.add_equation("r**2 * (dt(ur) + dr(p) - nu * lap_r(ur))    = r**2 * (b_dg_b_r - u_dg_u_r)")
+# problem.add_equation("(dt(ur) + dr(p) - nu * lap_r(ur))    = (b_dg_b_r - u_dg_u_r)")
 
 # momentum-theta
-problem.add_equation("r    * (dt(uth)        - nu * lap_th(uth))  = r    * (b_dg_b_th - u_dg_u_th)")
+problem.add_equation("r**2 * (dt(uth)        - nu * lap_th(uth))  = r**2 * (b_dg_b_th - u_dg_u_th)")
+# problem.add_equation("(dt(uth)        - nu * lap_th(uth))  = (b_dg_b_th - u_dg_u_th)")
 
 # momentum-z
-problem.add_equation("r**2 * (dt(uz) + dz(p) - nu * lap_z(uz))    = r**2 * (b_dg_b_z - u_dg_u_z)")
+problem.add_equation("r**1 * (dt(uz) + dz(p) - nu * lap_z(uz))    = r**1 * (b_dg_b_z - u_dg_u_z)")
+# problem.add_equation("(dt(uz) + dz(p) - nu * lap_z(uz))    = (b_dg_b_z - u_dg_u_z)")
 
 # div(b) = 0
 problem.add_equation("br + r*dz(bz) + r*dr(br) + tau_phi = 0") 
+# problem.add_equation("br + r*dz(bz) + r*dr(br) + tau_phi = 0") 
 
 # induction-r
 problem.add_equation("r**2 * (dt(br) + dr(phi) - eta * lap_r(br)) = r**2 * (-curl_u_cross_br)")
+# problem.add_equation("(dt(br) + dr(phi) - eta * lap_r(br)) = (-curl_u_cross_br)")
 
 # induction-theta
-problem.add_equation("r    * (dt(bth)        - eta * lap_th(bth)) = r    * (-curl_u_cross_bth)")
+problem.add_equation("r**2 * (dt(bth)        - eta * lap_th(bth)) = r**2 * (-curl_u_cross_bth)")
+# problem.add_equation("(dt(bth)        - eta * lap_th(bth)) = (-curl_u_cross_bth)")
 
 # induction-z
-problem.add_equation("r**2 * (dt(bz) + dz(phi) - eta * lap_z(bz)) = r**2 * (-curl_u_cross_bz)")
+problem.add_equation("r**1 * (dt(bz) + dz(phi) - eta * lap_z(bz)) = r**1 * (-curl_u_cross_bz)")
+# problem.add_equation("(dt(bz) + dz(phi) - eta * lap_z(bz)) = (-curl_u_cross_bz)")
 
 # pressure gauge
 problem.add_equation("integ(p) = 0")
@@ -178,7 +186,7 @@ problem.add_equation("dr(uz)(r='right') = 0")
 
 problem.add_equation("br(r='left') = 0")
 problem.add_equation("dr(bth)(r='left') = 0")
-problem.add_equation("phi(r='left') = 0")
+problem.add_equation("dr(bz)(r='left') = 0")
 
 problem.add_equation("br(r='right') = 0")
 problem.add_equation("dr(bth)(r='right') = 0")
@@ -188,8 +196,8 @@ solver = problem.build_solver(d3.RK222)
 solver.stop_sim_time = stop_sim_time
 
 # initial conditions
-bz['g'] = 1.0 * (1 + 4*rg**5) / (5*rg**3)
-uth['g'] = 1 / rg
+# bz['g'] = 1.0 * (1 + 4*rg**5) / (5*rg**3)
+# uth['g'] = 1 / rg
 uz.fill_random()
 uz.low_pass_filter(scales=1/16)
 uz['g'] *= 1e-4
