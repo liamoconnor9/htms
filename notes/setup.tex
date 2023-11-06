@@ -1,0 +1,229 @@
+
+\documentclass[10pt]{article}
+\linespread{1.25}
+
+%%Make Parenthesis scale to fit whats inside
+\newcommand{\parry}[1]{\left( #1 \right)}
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{subcaption}
+\usepackage[section]{placeins}
+
+%% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+%% Useful packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{siunitx}
+\usepackage{float}
+\usepackage{scrextend}
+\usepackage[final]{pdfpages}
+\usepackage{pythonhighlight}
+
+%%Header & Footer
+\usepackage[myheadings]{fullpage}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx, wrapfig, subcaption, setspace, booktabs}
+
+%% Define \therefore command
+\def\therefore{\boldsymbol{\text{ }
+\leavevmode
+\lower0.4ex\hbox{$\cdot$}
+\kern-.5em\raise0.7ex\hbox{$\cdot$}
+\kern-0.55em\lower0.4ex\hbox{$\cdot$}
+\thinspace\text{ }}}
+
+%% Units
+\DeclareSIUnit\year{yr}
+\DeclareSIUnit\dollar{\$}
+\DeclareSIUnit\celcius{C^{\circ}}
+\DeclareSIUnit\mole{mole}
+\def\conclusion{\quad \Rightarrow \quad}
+
+\newcommand{\angled}[1]{\left\langle #1 \right\rangle}
+\newcommand{\pd}[1]{\partial_{#1}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\M}[1]{\mathbf{#1}}
+\newcommand{\grad}{\vec{\nabla}}
+\newcommand{\cross}{\vec{\times}}
+\newcommand{\laplacian}{\nabla^2}
+\makeatletter
+\DeclareRobustCommand{\pder}[1]{%
+  \@ifnextchar\bgroup{\@pder{#1}}{\@pder{}{#1}}}
+\newcommand{\@pder}[2]{\frac{\partial#1}{\partial#2}}
+\makeatother
+\begin{document}
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+% HEADER AND FOOTER
+%----------------------------------------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\setlength\headheight{12pt}
+\fancyhead[L]{\textbf{MRI Notes}}
+\fancyhead[R]{\textbf{Liam O'Connor}}
+\fancyfoot[R]{Page \thepage\ of \pageref{LastPage}}
+
+\section{Setup}
+
+The incompressible MHD equations in a local cartesian region in a rotating frame
+\begin{align*}
+    \partial_t \vec{v} + \vec{v}\cdot\grad\vec{v} + 2\Omega \vec{\hat{z}}\times\vec{v} + \grad p &= \vec{b}\cdot\grad\vec{b} + \nu\laplacian\vec{v} \\
+    \grad\cdot\vec{v} &= 0 \\
+    \partial_t \vec{b} + \vec{v}\cdot\grad\vec{b} &= \vec{b}\cdot\grad\vec{v} + \eta\laplacian\vec{b}\\
+    \grad\cdot\vec{b} &= 0 \\
+\end{align*}
+
+With axisymmetry (constant in $y$) we consider linear perturbations (with $x$ and $z$ dependence of the form)
+
+\begin{align*}
+    \vec{v} &= [v_0(x) + v(x,z)]\vec{\hat{y}} - \vec{\hat{y}}\times\grad\psi(x,z) \\
+    \vec{b} &= b(x,z)\vec{\hat{y}} - \vec{\hat{y}}\times\grad\left(  a_0(x) + a(x,z)\right) 
+    \intertext{such that}
+    v_0(x) &= Sx - \frac{Sd}{2} \\
+    a_0(x) &= Bx - \frac{Bd}{2}
+    \intertext{with $0<x<d$. $S$ is the shear rate of the background azimuthal flow (which decreases in $x$). $B$ is the constant poloidal background magnetic field (in the $z$ direction). Substitution yields}
+    \partial_t b + J(\psi, b) &= J(a, v)+B\partial_zv - S\partial_za + \eta\laplacian b, \\
+    \partial_t a + J(\psi, a) &= B\partial_z\psi + \eta\laplacian a, \\
+    \partial_t v + J(\psi, v) - (f+S)\partial_z\psi &= J(a,b) + B\partial_zb + \nu\laplacian v, \\
+    \partial_t\laplacian \psi + J(\psi, \laplacian \psi) + f\partial_zv &= J(a,\laplacian a) + B\partial_z\laplacian a + \nu\grad^4\psi
+    \intertext{where the Jacobian}
+    J(p,q) &\equiv \partial_xp\partial_zq - \partial_zp\partial_xq
+\end{align*}
+
+\begin{align*}
+    \intertext{The stream function $\psi$ and scalar magnetic potential $a$ are related to their respective vector fields as follows}
+    vx &= -\partial_z \psi \\
+    vz &=  \partial_x \psi \\
+    bx &= -\partial_z a \\
+    bz &=  \partial_x a \\
+    \intertext{The Jacobian terms}
+    J(\psi, \cdot) &= \partial_x\psi\partial_z \cdot - \partial_z\psi\partial_x \cdot \\
+    &= vz\partial_z \cdot +vx\partial_x \cdot \\
+    \intertext{The vorticity}
+    \partial_z vx - \partial_x vz &= -\partial_z^2 \psi - \partial_x^2 \psi = -\laplacian \psi
+\end{align*}
+
+\begin{align*}
+    \intertext{The coriolis term}
+    2\Omega\vec{\hat{z}}\times\vec{v} &= 2\Omega(-vy\vec{\hat{x}} + vx\vec{\hat{y}})
+    \intertext{whose 2D curl}
+    &= -f\partial_z vy
+\end{align*}
+
+\begin{align*}
+    \intertext{Next the linearized non-dissipative system}
+    \partial_tb &= B\partial_zv - S\partial_za\\
+    \partial_ta &= B\partial_z\psi \\
+    \partial_t v - (f+S)\partial_z\psi &= B\partial_z b  \\ 
+    \partial_t \laplacian\psi + f\partial_z v &= B\partial_z \laplacian a 
+    \intertext{Time derivative of the first allows for the elimination of a}
+    \partial_t^2b &= B\partial_t \partial_zv - S B\partial_z^2\psi\\
+    \intertext{Rearranging}
+    \partial_t \partial_zv &= S\partial_z^2\psi + B^{-1}\partial_t^2b\\
+    (f+S)B\partial_z^2\psi + B^2\partial_z^2 b &= SB\partial_z^2\psi + \partial_t^2b\\
+    fB\partial_z^2\psi + B^2\partial_z^2 b &= \partial_t^2b\\
+\end{align*}
+Time derivative of the streamfunction equation
+\begin{align*}
+    \partial_t^2 \laplacian\psi + f(S\partial_z^2\psi + B^{-1}\partial_t^2b) &= B\partial_t\partial_z \laplacian a \\
+    \intertext{using the second equation for $a$}
+    \partial_t^2 \laplacian\psi + f(S\partial_z^2\psi + B^{-1}\partial_t^2b) &= B^2\partial_z^2 \laplacian \psi \\
+    \intertext{and substituting our previous expression for the second order time derivative of $b$}
+    \partial_t^2 \laplacian\psi + f((f+S)\partial_z^2\psi + B\partial_z^2 b)) &= B^2\partial_z^2 \laplacian \psi \\
+\end{align*}
+
+\section{Quasilinear Analysis}
+
+The vector velocity and magnetic field,
+\begin{align*}
+    U=(-\partial_z\psi, u_y, \partial_x\psi), \qquad B=(-\partial_zA_y, B_y, \partial_xA_y)
+\end{align*}
+The full nonlinear set of streamwise equations
+\begin{align*}
+    \partial_tu_y - f\partial_z\psi + \grad\cdot(uu_y - BB_y) &= 0 \\
+    \partial_tA_y + \grad\cdot(uA_y) &= 0 \\
+    \partial_tB_y + \grad\cdot(uB_y - Bu_y)
+\end{align*}
+The equation for $\psi$ is more complicated, but we don't need it right now.
+The initial background parameters satisfy the full streamwise equations. At leading order:
+\begin{align*}
+    U_y = S(x - d/2), \qquad A_y = B_0 (x - d/2)
+\end{align*}
+and $\psi=B_y=0$.
+The linear equations are
+\begin{align*}
+    \partial_t u_y &= \partial_z ((f-S)\psi + B_0b_y) \\
+    \partial_t a_y &= \partial_z(B_0\psi) \\
+    \partial_t b_y &= \partial_z(B_0u_y + Sa_y)
+\end{align*}
+We want to see how the linear synamics feeds back onto the $z$-mean $u_y$, and $a_y$ fields. 
+These feedbacks represent quadratic-order changes to the ``background'' parameters.
+Therefore,
+
+\begin{align*}
+    \partial_t\langle u_y \rangle + \partial_x \langle u_xu_y - B_xB_y \rangle &= 0 \\
+    \partial_t \langle \rangle + \partial_x \langle u_x A_y \rangle &= 0
+\end{align*}
+
+For any two function, $f(z)$, $g(z)$, a couple of essential properties of the $z$-average
+\begin{itemize}
+    \item $\langle \partial_z f \rangle = 0$
+    \item $\langle f\partial_z g \rangle = -\langle g\partial_z f \rangle$
+\end{itemize}
+
+We want to isolate the feedback from the linear dynamics.
+Therefore, we can use the linear equations freely in simplifying the quadratic terms and the resulting $\partial_t$ terms tell us how much background change we can expect for a hard day's work.
+
+Therefore, using the definitions of $u_x$, $b_x$,
+\begin{align*}
+    \partial_t\langle U_y \rangle &= \partial_x \langle u_y\partial_z\psi - b_y\partial_za_y\rangle \\
+    \partial_t\langle A_y \rangle &= \partial_x\langle a_y\partial_z\psi\rangle
+\end{align*}
+
+First, notice that
+\begin{align*}
+    \partial_z\psi &= \frac{\partial_t a_y}{B_0}
+    \intertext{therefore,}
+    \langle a_y \partial_z\psi \rangle &= \frac{\langle a_y \partial_ta_y\rangle}{B_0} = \frac{\partial_t\langle a^2_y \rangle}{2B_0}
+    \intertext{Therefore, usng the initial conditions for the background we can pull a time derivative off of both sides of the equation,}
+    \langle A_y \rangle &= B_0(x - d/2) + \frac{\partial_x\langle a^2_y \rangle}{2B_0}.
+    \intertext{Next, notice that}
+    \partial_t\angled{U_y} &= \pd{x}\angled{u_y\partial_z\psi - b_y\partial_za_y} = \partial_x\angled{u_y\partial_z\psi + a_y\partial_zb_y}
+    \intertext{Then notice}
+    \partial_zb_y &= \frac{\partial_tu_y}{B_0} - (f - S)\frac{\partial_z\psi}{B_0} = \frac{\partial_tu_y}{B_0} - (f - S)\frac{\partial_ta_y}{B_0^2}
+    \intertext{Therefore,}
+    \angled{u_y\partial_z\psi + a_y\partial_zb_y} &= \partial_t\angled{\frac{a_yu_y}{B_0} - (f - S)\frac{a_y^2}{2B^2_0}}
+    \intertext{Finally,}
+    \angled{A_y} &= B_0(x - d/2) + \partial_x\vec{\Phi} \\
+    \angled{U_y} &= S(x - d/2) + \partial_x\vec{\mathcal{L}}
+    \intertext{where}
+    \vec{\Phi} &= \frac{\angled{a^2_y}}{2B_0}, \qquad \vec{\mathcal{L}} = \frac{\angled{2B_0a_yu_y - (f - S)a^2_y}}{2B_0^2}
+    \intertext{We then express the quasilinear correction terms as variations}
+    \delta A_y &= \partial_x\vec{\Phi} \\
+    \delta U_y &= \partial_x\vec{\mathcal{L}} 
+% Notice that if you integrate over $x$ the feedbacks go away. That's because of conservation.
+    \intertext{The dynamic shear and magnetic corrections}
+    \delta B_0 &= \partial_x \delta A_y = \partial^2_x \vec{\Phi} \\
+    \delta S &= \partial_x\delta U_y = \partial^2_x \vec{\mathcal{L}}
+\end{align*}
+
+\end{document}

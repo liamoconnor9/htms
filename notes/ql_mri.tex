@@ -1,0 +1,219 @@
+
+\documentclass[10pt]{article}
+\linespread{1.25}
+
+%%Make Parenthesis scale to fit whats inside
+\newcommand{\parry}[1]{\left( #1 \right)}
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{subcaption}
+\usepackage[section]{placeins}
+
+%% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+%% Useful packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{siunitx}
+\usepackage{float}
+\usepackage{scrextend}
+\usepackage[final]{pdfpages}
+\usepackage{pythonhighlight}
+
+%%Header & Footer
+\usepackage[myheadings]{fullpage}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx, wrapfig, subcaption, setspace, booktabs}
+
+%% Define \therefore command
+\def\therefore{\boldsymbol{\text{ }
+\leavevmode
+\lower0.4ex\hbox{$\cdot$}
+\kern-.5em\raise0.7ex\hbox{$\cdot$}
+\kern-0.55em\lower0.4ex\hbox{$\cdot$}
+\thinspace\text{ }}}
+
+%% Units
+\DeclareSIUnit\year{yr}
+\DeclareSIUnit\dollar{\$}
+\DeclareSIUnit\celcius{C^{\circ}}
+\DeclareSIUnit\mole{mole}
+\def\conclusion{\quad \Rightarrow \quad}
+
+\newcommand{\angled}[1]{\left\langle #1 \right\rangle}
+\newcommand{\pd}[1]{\partial_{#1}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\M}[1]{\mathbf{#1}}
+\newcommand{\grad}{\vec{\nabla}}
+\newcommand{\cross}{\vec{\times}}
+\newcommand{\laplacian}{\nabla^2}
+\makeatletter
+\DeclareRobustCommand{\pder}[1]{%
+  \@ifnextchar\bgroup{\@pder{#1}}{\@pder{}{#1}}}
+\newcommand{\@pder}[2]{\frac{\partial#1}{\partial#2}}
+\makeatother
+\begin{document}
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+% HEADER AND FOOTER
+%----------------------------------------------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\setlength\headheight{12pt}
+\fancyhead[L]{\textbf{MRI Notes}}
+\fancyhead[R]{\textbf{Liam O'Connor}}
+\fancyfoot[R]{Page \thepage\ of \pageref{LastPage}}
+
+\subsection{Problem Setup}
+
+Consider the non-dissipative incompressible MHD equations in a rotating frame
+\begin{align*}
+    \partial_t \vec{v} + \vec{v}\cdot\grad\vec{v} + f \vec{\hat{z}}\times\vec{v} + \grad p &= \vec{b}\cdot\grad\vec{b} \\
+    \grad\cdot\vec{v} &= 0 \\
+    \partial_t \vec{b} + \vec{v}\cdot\grad\vec{b} &= \vec{b}\cdot\grad\vec{v} \\
+    \grad\cdot\vec{b} &= 0 \\
+\end{align*}
+
+With axisymmetry (constant in $y$) we consider linear perturbations (with $x$ and $z$ dependence of the form)
+
+\begin{align*}
+    \vec{v} &= [v_0(x) + v(x,z)]\vec{\hat{y}} - \vec{\hat{y}}\times\grad\psi(x,z) \\
+    \vec{b} &= b(x,z)\vec{\hat{y}} - \vec{\hat{y}}\times\grad\left(  a_0(x) + a(x,z)\right) 
+    \intertext{such that}
+    v_0(x) &= Sx - \frac{Sd}{2} \\
+    a_0(x) &= Bx - \frac{Bd}{2}
+    \intertext{with $0<x<d$. $S$ is the shear rate of the background azimuthal flow (which decreases in $x$). $B$ is the constant poloidal background magnetic field (in the $z$ direction).}
+\end{align*} 
+
+\subsection{Displacement Equation}
+The Eulerian displacement vector satisfies
+\begin{align*}
+  \vec{v} &= \partial_t\vec{\xi} + v_0(x)\vec{\hat{y}}\cdot\grad\vec{\xi} - \vec{\xi} \cdot\grad (v_0(x)\vec{\hat{y}})\\
+  &= \partial_t\vec{\xi} - S\xi_x \vec{\hat{y}}
+  \intertext{with}
+  \vec{b} &= \grad\times(\vec{\xi} \times \vec{B}).
+  \intertext{Substituting these expressions into the linearized induction equation gives}
+  IND &= \partial_t\vec{b} - \grad\times(\vec{v_0}\times\vec{b} + \vec{v}\times\vec{B})\\
+  &= \grad\times(\partial_t\vec{\xi} \times \vec{B}) - \grad\times(\vec{v_0}\times\vec{b} + \partial_t\vec{\xi} \times\vec{B} - S\xi_x \vec{\hat{y}}\times\vec{B})\\
+  &= - \grad\times(\vec{v_0}\times\vec{b} - S\xi_x \vec{\hat{y}}\times\vec{B})\\
+  &= - \grad\times(Sx\vec{\hat{y}}\times(\grad\times(\vec{\xi} \times \vec{B})) - S\xi_x \vec{\hat{y}}\times\vec{B}).
+  \intertext{Notice}
+  \grad\times(\vec{\xi} \times \vec{B}) &= \vec{\xi}(\grad \cdot \vec{B}) - \vec{B}(\grad \cdot \vec{\xi}) + (\vec{B} \cdot \grad) \vec{\xi} - (\vec{\xi}\cdot\grad)\vec{B} \\
+  &= - \vec{B}(\grad \cdot \vec{\xi}) + (\vec{B} \cdot \grad) \vec{\xi} \\
+  &= B\partial_z \vec{\xi} \\
+  \intertext{implies}
+  IND &= - SB \grad\times(x\vec{\hat{y}}\times \partial_z \vec{\xi} - \xi_x \vec{\hat{y}}\times\vec{\hat{z}}).
+  \intertext{However,}
+  \grad\times(x\vec{\hat{y}}\times \partial_z \vec{\xi}) &= x\vec{\hat{y}}(\grad\cdot \partial_z \vec{\xi}) - \partial_z \vec{\xi}(\grad\cdot x\vec{\hat{y}}) + (\partial_z \vec{\xi}\cdot\grad)x\vec{\hat{y}} - (x\vec{\hat{y}}\cdot\grad) \partial_z \vec{\xi}\\
+  &= \partial_z \xi_x \vec{\hat{y}}
+  \intertext{and}
+  \grad\times(\xi_x \vec{\hat{y}}\times\vec{\hat{z}}) &= \xi_x \vec{\hat{y}}(\grad\cdot \vec{\hat{z}}) - \vec{\hat{z}}(\grad\cdot \xi_x \vec{\hat{y}}) + (\vec{\hat{z}}\cdot\grad)\xi_x \vec{\hat{y}} - (\xi_x \vec{\hat{y}}\cdot\grad) \vec{\hat{z}}\\
+  &= \partial_z\xi_x \vec{\hat{y}}.
+  \intertext{Therefore, we automatically satisfy $IND = 0$.}
+  \intertext{With the induction equation satisfied, we turn our attention to the momentum equation. Combining the displacement relation with the momentum equation gives the second-order boundary value problem}
+  0 &= -\xi_x'' + k_z^2\left( 1 + \frac{\Omega(-B^2k_z^2S+\gamma^2(\Omega - S))}{(B^2k_z^2+\gamma^2)^2} \right)\xi_x.
+  \intertext{The growth rate $\gamma\to 0$ for marginal-stability}
+  0 &= -\xi_x'' + \left( k_z^2 - \frac{S\Omega}{B^2} \right)\xi_x.
+  \intertext{Thus, for finite $k_z$, we obtain a marginally-stable mode when}
+  \sqrt{\frac{S\Omega}{B^2}-k_z^2} &= \frac{d}{\pi}.
+  \intertext{We define the potential}
+  V &\equiv -\frac{S\Omega}{B^2}.
+  \intertext{Next we multiply the $x$-displacement equation by $\xi_x^*$ and integrate over the domain, yielding a functional}
+  \mathcal{F} &\equiv \int_0^d  |\xi_x'|^2 + k_z^2|\xi_x|^2 + V|\xi_x|^2 dx.
+  \intertext{The displacement $\xi_x = A \sin (\pi x / d)$}
+  \mathcal{F} &= A^2\left(\frac{\pi^2}{2d} + k_z^2\frac{d}{2} + V\frac{d}{2}\right).
+  \intertext{Saturation occurs when}
+  \mathcal{F} &= -\delta\mathcal{F}
+  \intertext{where}
+  \delta\mathcal{F} &= \int_0^d \delta V|\xi_x|^2 dx.
+  \intertext{The potential varies due to changes in the background magnetic field and shear parameter, i.e.}
+  \delta V &= -\Omega B^{-2}\delta S + 2S\Omega B^{-3} \delta B
+\end{align*}
+
+\subsection{Eigenvalue Problem}
+
+\begin{align*} 
+    \intertext{Substitution yields}
+    \partial_t b + J(\psi, b) &= J(a, v)+B\partial_zv - S\partial_za , \\
+    \partial_t a + J(\psi, a) &= B\partial_z\psi , \\
+    \partial_t v + J(\psi, v) - (f+S)\partial_z\psi &= J(a,b) + B\partial_zb , \\
+    \partial_t\laplacian \psi + J(\psi, \laplacian \psi) + f\partial_zv &= J(a,\laplacian a) + B\partial_z\laplacian a 
+    \intertext{where the Jacobian}
+    J(p,q) &\equiv \partial_xp\partial_zq - \partial_zp\partial_xq
+    \intertext{We denote linear perturbations with apostrophes, e.g. $v(x,z,t)=v_0(x) + v'(x,z,t)$. We discard the Jacobian terms to obtain the linearized system
+    }
+    \partial_t b' &= B\partial_zv' - S\partial_za' , \\
+    \partial_t a' &= B\partial_z\psi', \\
+    \partial_t v' - (f+S)\partial_z\psi' &= B\partial_zb', \\
+    \partial_t\laplacian \psi' + f\partial_zv' &= B\partial_z\laplacian a'.
+    \intertext{We isolate the nonlinear feedback by taking the $z$-average of the nonlinear equations. For velocity, we rewrite the $y$-component equation as}
+    \partial_t \angled{v_y}  &= \angled{\vec{b}\cdot\grad b_y - \vec{v}\cdot\grad v_y} \\
+    &= \angled{\grad\cdot (b_y\vec{b} - v_y\vec{v})} \\
+    &= \partial_x\angled{-b_y\partial_z a + v_y\partial_z\psi}.
+    \intertext{For the induction equation, we use the scalar potential}
+    \partial_t \angled{a} &= -\angled{J(\psi, a)} \\
+    &= \angled{\partial_z\psi\partial_x a - \partial_x\psi\partial_z a} \\
+    &= -\angled{u_x\partial_x a + u_z\partial_z a} \\ 
+    &= -\angled{u_x\partial_x a - a\partial_z u_z}.
+    \intertext{The velocity has no divergence and no $y$-dependence, meaning $\partial_x u_x+\partial_z u_z=0$ such that}
+    &= -\angled{u_x\partial_x a + a\partial_x u_x} \\
+    &= -\partial_x \angled{a u_x} \\
+    &= \partial_x \angled{a \partial_z\psi} \\
+    % \partial_t \angled{\vec{b}} &= \angled{\vec{b}\cdot\grad\vec{v} - \vec{v}\cdot\grad\vec{b}}. \\
+    \intertext{The background state is characterized by the shear parameter $S$ as well as the vertical magnetic field $B$. We eliminate the time derivatives by manipulating the linear equations. For the velocity, we have}
+    \partial_t \angled{v_y} &= \partial_x\angled{-b_y\partial_z a + B^{-1}v_y\partial_t a} \\
+    &= \partial_x\angled{a\partial_z b_y + B^{-1}v_y\partial_t a} \\
+    &= B^{-1}\partial_x\angled{a \partial_tv_y - (f + S)a \partial_z \psi + v_y\partial_t a} \\
+    &= B^{-1}\partial_x\angled{a \partial_tv_y - \frac{f + S}{B} a \partial_t a + v_y\partial_t a} \\
+    &= B^{-1}\partial_x\angled{\partial_t\left( av_y \right) - \frac{f + S}{2B}  \partial_t \left( a^2 \right)} \\
+    &= \partial_t\left(B^{-1}\partial_x\angled{ av_y - \frac{f + S}{2B} a^2 }\right) \\
+    \therefore \; \angled{v_y} &= Sx + \partial_x\angled{ \frac{1}{B}av_y - \frac{f + S}{2B^2} a^2 }
+    \intertext{For the magnetic potential, we have}
+    \partial_t \angled{a} &= B^{-1}\partial_x \angled{a \partial_t a} \\
+    &= \partial_t\left(\frac{1}{2B}\partial_x \angled{a^2} \right) \\
+    \therefore \; \angled{a} &= Bx + \frac{1}{2B}\partial_x \angled{a^2} \\
+\end{align*}
+
+\subsection{Amplitude Estimate}
+The feedback terms from the previous subsection allow us to compute the variations of the background quantities
+\begin{align*}
+  \delta S(x) &= \partial_x^2\angled{ \frac{1}{B}av_y - \frac{f + S}{2B^2} a^2 } \\
+  \delta B(x) &= \frac{1}{2B}\partial_x^2 \angled{a^2} 
+  \intertext{Once the $x$-displacement $\xi_x$ is known, we can compute the other eigenfunctions}
+  a &= -B\xi_x \\
+  v_y &= \frac{\left( \gamma^2k_z^{-1} - B^2k_z \right) \left( k_z^2 - \pi^2 d^{-2} \right) }{2\Omega k_z}\xi_x = \kappa \xi_x.
+  \intertext{Therefore}
+  \delta S(x) &= \partial_x^2\angled{ \frac{1}{B}av_y - \frac{2\Omega + S}{2B^2} a^2 } \\
+  \delta B(x) &= \frac{1}{2B}\partial_x^2 \angled{a^2} 
+  \intertext{Recall,}
+  \delta V &= -\Omega B^{-2}\delta S + 2S\Omega B^{-3} \delta B \\
+  &= -\Omega B^{-2}\partial_x^2\angled{ \frac{1}{B}av_y - \frac{2\Omega + S}{2B^2} a^2 } + S\Omega B^{-4} \partial_x^2 \angled{a^2}.
+  \intertext{Then, writing everything in terms of the $x$-displacement}
+  &= \Omega B^{-2}\partial_x^2\angled{ \kappa \xi_x^2 + \frac{2\Omega + S}{2} \xi_x^2 } + S\Omega B^{-2} \partial_x^2 \angled{\xi_x^2} \\
+  &= \Omega B^{-2}\left(\kappa + \Omega + \frac{3S}{2}\right)\partial_x^2\angled{ \xi_x^2 }
+  \intertext{implies}
+  \delta\mathcal{F} &= \int_0^d |\xi_x|^2(\Omega B^{-2}\left(\kappa + \Omega + \frac{3S}{2}\right)\partial_x^2\angled{ \xi_x^2 }) dx \\
+  &= A^4 \frac{3\pi^2}{8d}\Omega B^{-2}\left(\kappa + \Omega + \frac{3S}{2}\right).
+  \intertext{Therefore, the overall amplitude estimate}
+  A &= \sqrt{\frac{\left(\frac{\pi^2}{2d} + k_z^2\frac{d}{2} + V\frac{d}{2}\right)}{\frac{3\pi^2}{8d}\Omega B^{-2}\left(\kappa + \Omega + \frac{3S}{2}\right)}}
+\end{align*}
+
+\end{document}
