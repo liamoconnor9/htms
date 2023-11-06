@@ -239,23 +239,38 @@ First, define the velocity and magnetic flux as follows
   \vec{u} &= -\partial_z\psi\vec{\hat{r}} + v\vec{\hat{\theta}} + \partial_r\psi\vec{\hat{z}} \\
   \vec{b} &= -\partial_z a\vec{\hat{r}} + b\vec{\hat{\theta}} + \partial_r a\vec{\hat{z}}.
 \end{align*}
+
 \begin{align*}
-\intertext{Inserting this expression for velocity into the $\theta$-component of the momentum equation gives}
-  \partial_t v + \nu\left( r^{-2}v - r^{-1}\partial_rv  - \partial_r^2v - \partial_z^2v \right) = r^{-1}\left( v\partial_z\psi - b\partial_za \right) + \partial_zb\partial_ra - \partial_za\partial_rb + \partial_z\psi\partial_rv - \partial_zv\partial_r\psi \\
-  \partial_t v + \nu\left( r^{-2}v - r^{-1}\partial_rv  - \partial_r^2v - \partial_z^2v \right) = r^{-1}\left( v\partial_z\psi - b\partial_za \right) + \partial_zb\partial_ra - \partial_za\partial_rb + \partial_z\psi\partial_rv - \partial_zv\partial_r\psi \\
-  \intertext{Then, taking the $\theta$-component of the curl of the vector momentum equation gives the following equation for $\grad^2\psi$}
-  \partial_t\grad^2\psi + \nu \left(\partial_z^2\psi/r^2-\partial_z^4\psi-\partial_r\partial_z^2\psi/r+\partial_r^2\psi/r^2-2 \partial_r^2\partial_z^2\psi - \partial_r^3\psi/r-\partial_r^4\psi \right)\quad\quad \\
-  -((2 b \partial_zb)/r)+(2 v \partial_z v)/r-\partial_z\psi \partial_r\partial_z^2\psi - \partial_ra \partial_z^3a+ \partial_ra \partial_r^2\partial_za + \partial_r\psi \partial_z^3\psi + \partial_r\psi \partial_r^2\partial_z\psi + \partial_z a (\partial_r\partial_z^2a+\partial_r^3a)-\partial_z\psi \partial_r^3\psi \\ 
-  % \grad^2f(r,z) &= r^{-1}\partial_r (r\partial_r f) + \partial_z^2f\\
-  % &= r^{-1}\partial_r f + \partial_r^2 f + \partial_z^2f\\
-  % \intertext{implies}
-  % \grad^2f(r,z) &= \grad^2\grad^2f(r,z) \\ 
-  % &= r^{-1}\partial_r (r^{-1}\partial_r f + \partial_r^2 f + \partial_z^2f)\\
-  % &\quad + \partial_r^2 (r^{-1}\partial_r f + \partial_r^2 f + \partial_z^2f)\\
-  % &\quad + \partial_z^2 (r^{-1}\partial_r f + \partial_r^2 f + \partial_z^2f)\\
-  % &= r^{-2}\partial_r^2 f - r^{-3}\partial_r f + r^{-1}\partial_r^3 f + r^{-1}\partial_r\partial_z^2f \\
-  % &\quad + r^{-1}\partial_r^3 f - r^{-2}\partial_r^2 f - r^{-2}\partial_r^2 f + 2r^{-3}\partial_r f + \partial_r^4 f + \partial_r^2\partial_z^2f\\
-  % &\quad + r^{-1}\partial_r\partial_z^2 f + \partial_r^2\partial_z^2 f + \partial_z^4f\\
+  \intertext{We define the following scalar operators:}
+  J[P,Q] &\equiv \partial_rP \partial_zQ - r^{-1}\partial_zP\partial_r(rQ)\\
+  J_n[P,Q] &\equiv \partial_rP\partial_zQ - \partial_zP\partial_rQ\\
+  \grad^2_h[A] &\equiv \partial_r^2A + \partial_z^2A\\
+  \grad^2[A] &\equiv \partial_r^2A + r^{-1}\partial_r A + \partial_z^2A\\
+  \grad^2_r[A] &\equiv \partial_r^2A + r^{-1}\partial_r A - r^{-2}A + \partial_z^2A.
+  \intertext{The scalar-potential/streamfunction form is given by}
+  \partial_t b - \eta\grad^2_r b &= - J_n[\psi,b]+J_n[a,v] \\
+  \partial_t a - \eta\grad^2 a &= - J_n[\psi,a] \\
+  \partial_t v - \nu\grad^2_r v &= - J[\psi,v] + J[a,b]\\
+  \partial_t \grad^2_h\psi - \nu\grad^2\grad^2_h\psi + \nu r^{-2}\grad^2_h\psi &=  J_n[\grad^2_h\psi, \psi] - J_n[\grad^2_h a, a] + 2r^{-1}\left( b\partial_zb - v\partial_zv \right)\\
 \end{align*}
+
+% \begin{align*}
+% \intertext{Inserting this expression for velocity into the $\theta$-component of the momentum equation gives}
+%   \partial_t v + \nu\left( r^{-2}v - r^{-1}\partial_rv  - \partial_r^2v - \partial_z^2v \right) = r^{-1}\left( v\partial_z\psi - b\partial_za \right) + \partial_zb\partial_ra - \partial_za\partial_rb + \partial_z\psi\partial_rv - \partial_zv\partial_r\psi \\
+%   \partial_t v + \nu\left( r^{-2}v - r^{-1}\partial_rv  - \partial_r^2v - \partial_z^2v \right) = r^{-1}\left( v\partial_z\psi - b\partial_za \right) + \partial_zb\partial_ra - \partial_za\partial_rb + \partial_z\psi\partial_rv - \partial_zv\partial_r\psi \\
+%   \intertext{Then, taking the $\theta$-component of the curl of the vector momentum equation gives the following equation for $\grad^2\psi$}
+%   \partial_t\grad^2\psi + \nu \left(\partial_z^2\psi/r^2-\partial_z^4\psi-\partial_r\partial_z^2\psi/r+\partial_r^2\psi/r^2-2 \partial_r^2\partial_z^2\psi - \partial_r^3\psi/r-\partial_r^4\psi \right)\quad\quad \\
+%   -((2 b \partial_zb)/r)+(2 v \partial_z v)/r-\partial_z\psi \partial_r\partial_z^2\psi - \partial_ra \partial_z^3a+ \partial_ra \partial_r^2\partial_za + \partial_r\psi \partial_z^3\psi + \partial_r\psi \partial_r^2\partial_z\psi + \partial_z a (\partial_r\partial_z^2a+\partial_r^3a)-\partial_z\psi \partial_r^3\psi \\ 
+%   % \grad^2f(r,z) &= r^{-1}\partial_r (r\partial_r f) + \partial_z^2f\\
+%   % &= r^{-1}\partial_r f + \partial_r^2 f + \partial_z^2f\\
+%   % \intertext{implies}
+%   % \grad^2f(r,z) &= \grad^2\grad^2f(r,z) \\ 
+%   % &= r^{-1}\partial_r (r^{-1}\partial_r f + \partial_r^2 f + \partial_z^2f)\\
+%   % &\quad + \partial_r^2 (r^{-1}\partial_r f + \partial_r^2 f + \partial_z^2f)\\
+%   % &\quad + \partial_z^2 (r^{-1}\partial_r f + \partial_r^2 f + \partial_z^2f)\\
+%   % &= r^{-2}\partial_r^2 f - r^{-3}\partial_r f + r^{-1}\partial_r^3 f + r^{-1}\partial_r\partial_z^2f \\
+%   % &\quad + r^{-1}\partial_r^3 f - r^{-2}\partial_r^2 f - r^{-2}\partial_r^2 f + 2r^{-3}\partial_r f + \partial_r^4 f + \partial_r^2\partial_z^2f\\
+%   % &\quad + r^{-1}\partial_r\partial_z^2 f + \partial_r^2\partial_z^2 f + \partial_z^4f\\
+% \end{align*}
 
 \end{document}
