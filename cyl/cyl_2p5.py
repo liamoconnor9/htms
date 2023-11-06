@@ -128,7 +128,7 @@ curl_u_cross_bz = (br * uz - bz * ur) / r + uz * dr(br) - ur * dr(bz) - bz * dr(
 problem = d3.IVP([ur, uth, uz, br, bth, bz, p] + list(taus), namespace=locals())
 
 # incomp.
-problem.add_equation("ur / r + dz(uz) + dr(ur) + tau_p = 0") 
+problem.add_equation("ur + r*dz(uz) + r*dr(ur) + tau_p = 0") 
 
 # momentum-r
 problem.add_equation("dt(ur) + dr(p) - f * uth - nu * lap(ur) = b_dg_b_r - u_dg_u_r")
