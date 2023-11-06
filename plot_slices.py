@@ -63,7 +63,7 @@ def main(filename, start, count, output):
         for index in range(start, start+count):
             fig, axs = plt.subplots(1, 3, sharey=True, figsize=(3.2*np.pi, 3*np.pi))
             # fig, axs = plt.subplots(1, 2)
-            tasks = ['ur', 'uth', 'uz']
+            tasks = ['br', 'bth', 'bz']
             for n, task in enumerate(tasks):
                 # Build subfigure axes
                 # i, j = divmod(n, ncols)

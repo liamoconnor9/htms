@@ -52,13 +52,15 @@ r['g'] = rg
 ur = dist.Field(name='ur', bases=bases)
 uth = dist.Field(name='uth', bases=bases)
 uz = dist.Field(name='uz', bases=bases)
-br = dist.Field(name='br', bases=bases)
-bth = dist.Field(name='bth', bases=bases)
-bz = dist.Field(name='bz', bases=bases)
+Ar = dist.Field(name='br', bases=bases)
+Ath = dist.Field(name='bth', bases=bases)
+Az = dist.Field(name='bz', bases=bases)
 p = dist.Field(name='p', bases=bases)
+phi = dist.Field(name='phi', bases=bases)
 
 # tau terms
 tau_p = dist.Field(name='tau_p')
+tau_phi = dist.Field(name='tau_phi', bases=(zbasis, ))
 
 tau_ur1 = dist.Field(name='tau_ur1', bases=(zbasis, ))
 tau_uth1 = dist.Field(name='tau_uth1', bases=(zbasis, ))
@@ -68,22 +70,23 @@ tau_ur2 = dist.Field(name='tau_ur2', bases=(zbasis, ))
 tau_uth2 = dist.Field(name='tau_uth2', bases=(zbasis, ))
 tau_uz2 = dist.Field(name='tau_uz2', bases=(zbasis, ))
 
-tau_br1 = dist.Field(name='tau_br1', bases=(zbasis, ))
-tau_bth1 = dist.Field(name='tau_bth1', bases=(zbasis, ))
-tau_bz1 = dist.Field(name='tau_bz1', bases=(zbasis, ))
+tau_Ar1 = dist.Field(name='tau_br1', bases=(zbasis, ))
+tau_Ath1 = dist.Field(name='tau_bth1', bases=(zbasis, ))
+tau_Az1 = dist.Field(name='tau_bz1', bases=(zbasis, ))
 
-tau_br2 = dist.Field(name='tau_br2', bases=(zbasis, ))
-tau_bth2 = dist.Field(name='tau_bth2', bases=(zbasis, ))
-tau_bz2 = dist.Field(name='tau_bz2', bases=(zbasis, ))
+tau_Ar2 = dist.Field(name='tau_br2', bases=(zbasis, ))
+tau_Ath2 = dist.Field(name='tau_bth2', bases=(zbasis, ))
+tau_Az2 = dist.Field(name='tau_bz2', bases=(zbasis, ))
 
 tau_dict = {
     p   : (tau_p, ),
+    # phi   : (tau_phi, ),
     ur  : (tau_ur1, tau_ur2),
     uth : (tau_uth1, tau_uth2),
     uz  : (tau_uz1, tau_uz2),
-    br  : (tau_br1, tau_br2),
-    bth : (tau_bth1, tau_bth2),
-    bz  : (tau_bz1, tau_bz2),
+    br  : (tau_Ar1, tau_Ar2),
+    bth : (tau_Ath1, tau_Ath2),
+    bz  : (tau_Az1, tau_Az2),
 }
 
 ez = dist.VectorField(coords, name='ez')
@@ -93,9 +96,6 @@ er = dist.VectorField(coords, name='er')
 ez['g'][0] = 1
 eth['g'][1] = 1
 er['g'][2] = 1
-
-uvec = uz*ez + ur*er + uth*r*eth
-bvec = bz*ez + br*er + bth*r*eth
 
 lift_basis = rbasis.derivative_basis(1) # First derivative basis
 lift = lambda A: d3.Lift(A, lift_basis, -1)
@@ -109,6 +109,15 @@ dr = lambda A: d3.Differentiate(A, coords['r'])
 dz = lambda A: d3.Differentiate(A, coords['z'])
 lap = lambda A: dr(dr(A) + lift(tau_dict[A][0])) + lift(tau_dict[A][1]) + dz(dz(A)) + (dr(A) + lift(tau_dict[A][0])) / r
 integ = lambda A: d3.Integrate(d3.Integrate(A, 'z'), 'r')
+
+# substitutions
+br = -dz(Ath)
+bth = dz(Ar) - dr(Az)
+bz = Ath / r + dr(Ath)
+
+bvec = bz*ez + br*er + bth*r*eth
+uvec = uz*ez + ur*er + uth*r*eth
+
 
 # advective terms 
 u_dg_u_r = -uth**2 / r + uz * dz(ur) + ur * dr(ur)
@@ -125,7 +134,7 @@ curl_u_cross_br = -uz * dz(br) + ur * dz(bz) + bz * dz(ur) - br * dz(uz)
 curl_u_cross_bth = uth * dz(bz) - uz * dz(bth) - bth * dz(uz) + bz * dz(uth) + uth * dz(br) - ur * dr(bth) - bth * dr(ur) + br * dr(uth)
 curl_u_cross_bz = (br * uz - bz * ur) / r + uz * dr(br) - ur * dr(bz) - bz * dr(ur) + br * dr(uz)
 
-problem = d3.IVP([ur, uth, uz, br, bth, bz, p] + list(taus), namespace=locals())
+problem = d3.IVP([ur, uth, uz, Ar, Ath, Az, p, phi] + list(taus), namespace=locals())
 
 # incomp.
 problem.add_equation("ur / r + dz(uz) + dr(ur) + tau_p = 0") 
@@ -140,13 +149,13 @@ problem.add_equation("dt(uth) + f * ur - nu * lap(uth) = b_dg_b_th - u_dg_u_th")
 problem.add_equation("dt(uz) + dz(p) - nu * lap(uz) = b_dg_b_z - u_dg_u_z")
 
 # induction-r
-problem.add_equation("dt(br) - eta * lap(br) = -curl_u_cross_br")
+problem.add_equation("dt(Ar) + dr(phi) - eta * lap(Ar) = -curl_u_cross_br")
 
 # induction-theta
-problem.add_equation("dt(bth) - eta * lap(bth) = -curl_u_cross_bth")
+problem.add_equation("dt(Ath) - eta * lap(Ath) = -curl_u_cross_bth")
 
 # induction-z
-problem.add_equation("dt(bz) - eta * lap(bz) = -curl_u_cross_bz")
+problem.add_equation("dt(Az) + dz(phi) - eta * lap(Az) = -curl_u_cross_bz")
 
 # pressure gauge
 problem.add_equation("integ(p) = 0")
@@ -161,13 +170,13 @@ problem.add_equation("dr(uth)(r='right') = 0")
 problem.add_equation("dr(uz)(r='right') = 0")
 
 
-problem.add_equation("br(r='left') = 0")
-problem.add_equation("dr(bth)(r='left') = 0")
-problem.add_equation("dr(bz)(r='left') = 0")
+problem.add_equation("phi(r='left') = 0")
+problem.add_equation("Ath(r='left') = 0")
+problem.add_equation("Az(r='left') = 0")
 
-problem.add_equation("br(r='right') = 0")
-problem.add_equation("dr(bth)(r='right') = 0")
-problem.add_equation("dr(bz)(r='right') = 0")
+problem.add_equation("phi(r='right') = 0")
+problem.add_equation("Ath(r='right') = 0")
+problem.add_equation("Az(r='right') = 0")
 
 solver = problem.build_solver(d3.RK222)
 solver.stop_sim_time = 10

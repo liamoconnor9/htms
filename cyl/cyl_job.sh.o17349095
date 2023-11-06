@@ -1,0 +1,117 @@
+Job 17349095.pbspl1.nas.nasa.gov started on Mon Oct 30 14:39:49 PDT 2023
+The job requested the following resources:
+    ncpus=40
+    place=scatter:excl
+    walltime=04:00:00
+
+PBS set the following environment variables:
+        FORT_BUFFERED = 1
+                   TZ = PST8PDT
+
+On r145i1n4:
+Current directory is /home3/loconno2/htms/cyl
+Loading mpi-hpe/mpt
+  Loading requirement: mpi-hpe/mpt.2.28_25Apr23_rhel87
+DeprecationWarning: 'source deactivate' is deprecated. Use 'conda deactivate'.
+2023-10-30 14:39:57,376 subsystems 0/32 INFO :: Building subproblem matrices 1/8 (~12%) Elapsed: 1s, Remaining: 4s, Rate: 1.8e+00/s
+2023-10-30 14:39:57,594 subsystems 0/32 INFO :: Building subproblem matrices 2/8 (~25%) Elapsed: 1s, Remaining: 2s, Rate: 2.6e+00/s
+2023-10-30 14:39:57,812 subsystems 0/32 INFO :: Building subproblem matrices 3/8 (~38%) Elapsed: 1s, Remaining: 2s, Rate: 3.0e+00/s
+2023-10-30 14:39:58,031 subsystems 0/32 INFO :: Building subproblem matrices 4/8 (~50%) Elapsed: 1s, Remaining: 1s, Rate: 3.3e+00/s
+2023-10-30 14:39:58,248 subsystems 0/32 INFO :: Building subproblem matrices 5/8 (~62%) Elapsed: 1s, Remaining: 1s, Rate: 3.5e+00/s
+2023-10-30 14:39:58,467 subsystems 0/32 INFO :: Building subproblem matrices 6/8 (~75%) Elapsed: 2s, Remaining: 1s, Rate: 3.6e+00/s
+2023-10-30 14:39:58,684 subsystems 0/32 INFO :: Building subproblem matrices 7/8 (~88%) Elapsed: 2s, Remaining: 0s, Rate: 3.8e+00/s
+2023-10-30 14:39:58,900 subsystems 0/32 INFO :: Building subproblem matrices 8/8 (~100%) Elapsed: 2s, Remaining: 0s, Rate: 3.8e+00/s
+2023-10-30 14:39:59,077 __main__ 0/32 INFO :: entering main solver loop
+2023-10-30 14:40:02,845 __main__ 0/32 INFO :: time = 1.00e-04; avg(ke) = 1.25e+00; avg(be) = 8.69e-01; 
+2023-10-30 14:40:53,933 __main__ 0/32 INFO :: time = 1.01e-02; avg(ke) = 1.25e+00; avg(be) = 8.24e-01; 
+2023-10-30 14:41:44,588 __main__ 0/32 INFO :: time = 2.01e-02; avg(ke) = 1.25e+00; avg(be) = 8.05e-01; 
+2023-10-30 14:42:34,984 __main__ 0/32 INFO :: time = 3.01e-02; avg(ke) = 1.25e+00; avg(be) = 7.91e-01; 
+2023-10-30 14:43:25,229 __main__ 0/32 INFO :: time = 4.01e-02; avg(ke) = 1.25e+00; avg(be) = 7.79e-01; 
+2023-10-30 14:44:15,421 __main__ 0/32 INFO :: time = 5.01e-02; avg(ke) = 1.25e+00; avg(be) = 7.68e-01; 
+2023-10-30 14:45:05,910 __main__ 0/32 INFO :: time = 6.01e-02; avg(ke) = 1.25e+00; avg(be) = 7.59e-01; 
+2023-10-30 14:45:55,868 __main__ 0/32 INFO :: time = 7.01e-02; avg(ke) = 1.25e+00; avg(be) = 7.50e-01; 
+2023-10-30 14:46:45,437 __main__ 0/32 INFO :: time = 8.01e-02; avg(ke) = 1.25e+00; avg(be) = 7.42e-01; 
+2023-10-30 14:47:34,894 __main__ 0/32 INFO :: time = 9.01e-02; avg(ke) = 1.25e+00; avg(be) = 7.34e-01; 
+2023-10-30 14:48:24,756 __main__ 0/32 INFO :: time = 1.00e-01; avg(ke) = 1.25e+00; avg(be) = 7.27e-01; 
+2023-10-30 14:49:15,326 __main__ 0/32 INFO :: time = 1.10e-01; avg(ke) = 1.25e+00; avg(be) = 7.20e-01; 
+2023-10-30 14:50:04,913 __main__ 0/32 INFO :: time = 1.20e-01; avg(ke) = 1.25e+00; avg(be) = 7.14e-01; 
+2023-10-30 14:50:54,438 __main__ 0/32 INFO :: time = 1.30e-01; avg(ke) = 1.25e+00; avg(be) = 7.08e-01; 
+2023-10-30 14:51:43,965 __main__ 0/32 INFO :: time = 1.40e-01; avg(ke) = 1.25e+00; avg(be) = 7.02e-01; 
+2023-10-30 14:52:33,993 __main__ 0/32 INFO :: time = 1.50e-01; avg(ke) = 1.25e+00; avg(be) = 6.99e-01; 
+2023-10-30 14:53:23,611 __main__ 0/32 INFO :: time = 1.60e-01; avg(ke) = 1.26e+00; avg(be) = 6.98e-01; 
+2023-10-30 14:54:13,146 __main__ 0/32 INFO :: time = 1.70e-01; avg(ke) = 1.27e+00; avg(be) = 7.06e-01; 
+2023-10-30 14:55:02,644 __main__ 0/32 INFO :: time = 1.80e-01; avg(ke) = 1.43e+00; avg(be) = 8.83e-01; 
+2023-10-30 14:55:56,517 __main__ 0/32 INFO :: time = 1.89e-01; avg(ke) = 1.58e+01; avg(be) = 2.84e+01; 
+2023-10-30 14:56:58,314 __main__ 0/32 INFO :: time = 1.91e-01; avg(ke) = 3.89e+01; avg(be) = 1.13e+02; 
+2023-10-30 14:57:57,267 __main__ 0/32 INFO :: time = 1.92e-01; avg(ke) = 6.03e+01; avg(be) = 2.07e+02; 
+2023-10-30 14:58:58,775 __main__ 0/32 INFO :: time = 1.93e-01; avg(ke) = 8.19e+01; avg(be) = 2.99e+02; 
+2023-10-30 14:59:56,416 __main__ 0/32 INFO :: time = 1.94e-01; avg(ke) = 1.36e+02; avg(be) = 4.49e+02; 
+2023-10-30 15:00:56,561 __main__ 0/32 INFO :: time = 1.94e-01; avg(ke) = 1.37e+02; avg(be) = 4.61e+02; 
+2023-10-30 15:01:52,938 __main__ 0/32 INFO :: time = 1.95e-01; avg(ke) = 2.05e+02; avg(be) = 5.57e+02; 
+2023-10-30 15:02:53,043 __main__ 0/32 INFO :: time = 1.96e-01; avg(ke) = 2.87e+02; avg(be) = 6.97e+02; 
+2023-10-30 15:03:51,942 __main__ 0/32 INFO :: time = 1.96e-01; avg(ke) = 4.09e+02; avg(be) = 8.62e+02; 
+2023-10-30 15:04:53,311 __main__ 0/32 INFO :: time = 1.96e-01; avg(ke) = 7.13e+02; avg(be) = 1.11e+03; 
+2023-10-30 15:05:53,444 __main__ 0/32 INFO :: time = 1.96e-01; avg(ke) = 6.73e+02; avg(be) = 1.09e+03; 
+2023-10-30 15:06:53,500 __main__ 0/32 INFO :: time = 1.96e-01; avg(ke) = 6.60e+02; avg(be) = 1.12e+03; 
+2023-10-30 15:07:52,322 __main__ 0/32 INFO :: time = 1.97e-01; avg(ke) = 6.38e+02; avg(be) = 1.16e+03; 
+2023-10-30 15:08:48,592 __main__ 0/32 INFO :: time = 1.97e-01; avg(ke) = 7.01e+02; avg(be) = 1.24e+03; 
+2023-10-30 15:09:46,148 __main__ 0/32 INFO :: time = 1.97e-01; avg(ke) = 7.65e+02; avg(be) = 1.29e+03; 
+2023-10-30 15:10:44,940 __main__ 0/32 INFO :: time = 1.97e-01; avg(ke) = 8.13e+02; avg(be) = 1.34e+03; 
+2023-10-30 15:11:42,442 __main__ 0/32 INFO :: time = 1.97e-01; avg(ke) = 1.05e+03; avg(be) = 1.75e+03; 
+2023-10-30 15:12:39,958 __main__ 0/32 INFO :: time = 1.98e-01; avg(ke) = 1.12e+03; avg(be) = 1.80e+03; 
+2023-10-30 15:13:38,733 __main__ 0/32 INFO :: time = 1.98e-01; avg(ke) = 1.22e+03; avg(be) = 1.69e+03; 
+2023-10-30 15:14:40,086 __main__ 0/32 INFO :: time = 1.98e-01; avg(ke) = 1.15e+03; avg(be) = 1.69e+03; 
+2023-10-30 15:15:40,161 __main__ 0/32 INFO :: time = 1.98e-01; avg(ke) = 1.25e+03; avg(be) = 1.88e+03; 
+2023-10-30 15:16:37,684 __main__ 0/32 INFO :: time = 1.98e-01; avg(ke) = 1.35e+03; avg(be) = 1.86e+03; 
+2023-10-30 15:17:39,093 __main__ 0/32 INFO :: time = 1.98e-01; avg(ke) = 1.43e+03; avg(be) = 1.85e+03; 
+2023-10-30 15:18:36,605 __main__ 0/32 INFO :: time = 1.98e-01; avg(ke) = 1.48e+03; avg(be) = 1.88e+03; 
+2023-10-30 15:19:34,120 __main__ 0/32 INFO :: time = 1.98e-01; avg(ke) = 1.74e+03; avg(be) = 2.03e+03; 
+2023-10-30 15:20:29,061 __main__ 0/32 INFO :: time = 1.98e-01; avg(ke) = 1.68e+03; avg(be) = 2.01e+03; 
+2023-10-30 15:21:26,570 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = 1.73e+03; avg(be) = 2.15e+03; 
+2023-10-30 15:22:26,654 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = 1.82e+03; avg(be) = 2.33e+03; 
+2023-10-30 15:23:24,183 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = 2.06e+03; avg(be) = 2.44e+03; 
+2023-10-30 15:24:25,573 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = 9.38e+03; avg(be) = 2.54e+03; 
+2023-10-30 15:25:26,901 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = 2.26e+05; avg(be) = 2.55e+03; 
+2023-10-30 15:26:28,254 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = 1.38e+07; avg(be) = 2.56e+03; 
+2023-10-30 15:27:29,605 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = 3.20e+09; avg(be) = 2.66e+03; 
+2023-10-30 15:28:30,743 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:29:31,711 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:30:32,557 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:31:33,477 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:32:34,296 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:33:35,144 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:34:36,028 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:35:36,896 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:36:38,173 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:37:40,850 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:38:55,375 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:40:23,778 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:41:32,084 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:42:47,792 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:43:56,400 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:44:57,255 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:45:59,702 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:47:25,039 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:48:52,217 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:50:09,058 __main__ 0/32 INFO :: time = 1.99e-01; avg(ke) = nan; avg(be) = nan; 
+2023-10-30 15:51:26,594 __main__ 1/32 ERROR :: Exception raised, triggering end of main loop.
+2023-10-30 15:51:26,618 __main__ 2/32 ERROR :: Exception raised, triggering end of main loop.
+=>> PBS: job killed: walltime 14507 exceeded limit 14400
+MPT: Received signal 15
+
+____________________________________________________________________
+Job Resource Usage Summary for 17349095.pbspl1.nas.nasa.gov
+
+    CPU Time Used            : 128:28:51
+    Real Memory Used         : 21212368kb
+    Walltime Used            : 04:01:58
+    Exit Status              : 271
+
+    Number of CPUs Requested : 40
+    Walltime Requested       : 04:00:00
+
+    Execution Queue          : normal
+    Charged To               : s2276
+
+    Job Stopped              : Mon Oct 30 18:41:49 2023
+____________________________________________________________________
