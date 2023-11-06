@@ -27,6 +27,8 @@ Nz = 512
 f = 0
 nu = 1e-3
 eta = nu
+stop_sim_time = 10
+init_timestep = 3e-4
 
 coords = d3.CartesianCoordinates('z', 'r')
 dtype = np.float64
@@ -184,8 +186,7 @@ problem.add_equation("dr(bth)(r='right') = 0")
 problem.add_equation("dr(bz)(r='right') = 0")
 
 solver = problem.build_solver(d3.RK222)
-solver.stop_sim_time = 10
-init_timestep = 3e-4
+solver.stop_sim_time = stop_sim_time
 
 # initial conditions
 bz['g'] = 1.0 * (1 + 4*rg**5) / (5*rg**3)
