@@ -23,12 +23,12 @@ R0, R1 = 0.8, 1.0
 Lr = R1 - R0
 Lz = 2
 Nr = 128
-Nz = 256
+Nz = 512
 f = 0
 nu = 1e-3
 eta = nu
 stop_sim_time = 100
-init_timestep = 1e-4
+init_timestep = 1e-6
 
 
 coords = d3.CartesianCoordinates('z', 'r')
@@ -171,7 +171,7 @@ problem.add_equation("Az_r - dr(Az) + lift(tau_Az1) = 0")
 problem.add_equation("ur + r*dz(uz) + r*ur_r + tau_p     = 0") 
 
 # momentum-r
-problem.add_equation("r**2 * dt(ur) + r**2 * dr(p) + nu * (ur  - r*(ur_r  + r*(dr(ur_r)  + dz(dz(ur)))))  + lift(tau_ur2)     = r**2 * (b_dg_b_r - u_dg_u_r)")
+problem.add_equation("r**2 * dt(ur) + r**2 * dr(p) + nu * (ur  - r*(ur_r  + r*(dr(ur_r)  + dz(dz(ur)) )))  + lift(tau_ur2)     = r**2 * (b_dg_b_r - u_dg_u_r)")
 
 # momentum-theta
 problem.add_equation("r**2 * dt(uth)               + nu * (uth - r*(uth_r + r*(dr(uth_r) + dz(dz(uth))))) + lift(tau_uth2)    = r**2 * (b_dg_b_th - u_dg_u_th)")
@@ -198,12 +198,12 @@ problem.add_equation("integ(p) = 0")
 
 # stress free
 problem.add_equation("ur(r='left') = 0")
-problem.add_equation("dr(uth)(r='left') = 0")
-problem.add_equation("dr(uz)(r='left') = 0")
+problem.add_equation("uth(r='left') = -150*R0*np.log(R0)")
+problem.add_equation("uz(r='left') = 0")
 
 problem.add_equation("ur(r='right') = 0")
-problem.add_equation("dr(uth)(r='right') = 0")
-problem.add_equation("dr(uz)(r='right') = 0")
+problem.add_equation("uth(r='right') = -150*R1*np.log(R1)")
+problem.add_equation("uz(r='right') = 0")
 
 
 problem.add_equation("phi(r='left') = 0")
@@ -220,10 +220,10 @@ solver.stop_sim_time = stop_sim_time
 # initial conditions
 # bz['g'] = 1.0 * (1 + 4*rg**5) / (5*rg**3)
 Ath['g'] = (rg**5 - 1) / (5*rg**2)
-uth['g'] = 1 / rg
+uth['g'] = -150*rg*np.log(rg)
 uz.fill_random()
 uz.low_pass_filter(scales=1/16)
-uz['g'] *= 1e-4
+uz['g'] *= 1e-2
 
 # bz = Ath/r + dr(Ath)
 #    = 1/r * dr(r * Ath)
@@ -237,7 +237,7 @@ uz['g'] *= 1e-4
 # Ath     = (r**5 - 1) / (5*r**2)
 
 # measurements
-cadence = 100
+cadence = 1
 flow = d3.GlobalFlowProperty(solver, cadence=cadence)
 
 ke = ur**2 + uth**2 + uz**2
@@ -276,22 +276,24 @@ slicepoints.add_task(bth, name="bth")
 slicepoints.add_task(br, name="br")
 
 
-CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.01,
-             max_change=2, min_change=0.2, max_dt=init_timestep)
+CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=1, safety=0.3, threshold=0.01,
+             max_change=2, min_change=0.2, max_dt=1e-6)
 
-CFL.add_velocity(uz_vec)
-CFL.add_velocity(ur_vec)
+CFL.add_velocity(uz_vec) # 0
+CFL.add_velocity(ur_vec) # 150
 
-CFL.add_velocity(bz_vec)
-CFL.add_velocity(br_vec)
+CFL.add_velocity(bz_vec) # 1
+CFL.add_velocity(br_vec) # 0
+
 
 try:
     logger.info('entering main solver loop')
     while solver.proceed:
         ts = CFL.compute_timestep()
         solver.step(ts)
-        if (solver.iteration-1) % cadence == 0:
+        if (solver.iteration-1) % 10 == 0:
             msg = ""
+            msg += "iteration = {}; ".format(solver.iteration)
             msg += "time = {:.2e}; ".format(solver.sim_time)
             msg += "dt = {:.2e}; ".format(ts)
             msg += "avg(ke) = {:.2e}; ".format(flow.volume_integral('ke') / Lz / Lr)
