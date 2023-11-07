@@ -84,9 +84,9 @@ tau_dict = {
     ur  : (tau_ur1, tau_ur2),
     uth : (tau_uth1, tau_uth2),
     uz  : (tau_uz1, tau_uz2),
-    Ar  : (tau_Ar1, tau_Ar2),
-    Ath : (tau_Ath1, tau_Ath2),
-    Az  : (tau_Az1, tau_Az2),
+    # Ar  : (tau_Ar1, tau_Ar2),
+    # Ath : (tau_Ath1, tau_Ath2),
+    # Az  : (tau_Az1, tau_Az2),
 }
 
 lift_basis = rbasis.derivative_basis(1) # First derivative basis
@@ -147,25 +147,15 @@ ur_r = dist.Field(name='ur_r', bases=bases)
 uth_r = dist.Field(name='uth_r', bases=bases)
 uz_r = dist.Field(name='uz_r', bases=bases)
 
-Ar_r = dist.Field(name='Ar_r', bases=bases)
-Ath_r = dist.Field(name='Ath_r', bases=bases)
-Az_r = dist.Field(name='Az_r', bases=bases)
 
+problem = d3.IVP([ur, uth, uz, ur_r, uth_r, uz_r, p] + list(taus), namespace=locals())
 
-problem = d3.IVP([ur, uth, uz, Ar, Ath, Az, ur_r, uth_r, uz_r, Ar_r, Ath_r, Az_r, p, phi] + list(taus), namespace=locals())
-
-# first order reductions
-
+# incomp.
 problem.add_equation("ur_r - dr(ur) + lift(tau_ur1) = 0")
 problem.add_equation("uth_r - dr(uth) + lift(tau_uth1) = 0")
 problem.add_equation("uz_r - dr(uz) + lift(tau_uz1) = 0")
 
-problem.add_equation("Ar_r - dr(Ar) + lift(tau_Ar1) = 0")
-problem.add_equation("Ath_r - dr(Ath) + lift(tau_Ath1) = 0")
-problem.add_equation("Az_r - dr(Az) + lift(tau_Az1) = 0")
-
-# incomp.
-problem.add_equation("ur + r*dz(uz) + r*ur_r + tau_p     = 0") 
+problem.add_equation("r*(ur/r + dz(uz) + ur_r + tau_p)     = 0") 
 
 # momentum-r
 problem.add_equation("r**2 * dt(ur) + r**2 * dr(p) + nu * (ur  - r*(ur_r  + r*(dr(ur_r)  + dz(dz(ur)))))  + lift(tau_ur2) = 0")
@@ -177,17 +167,17 @@ problem.add_equation("r**2 * dt(uth)               + nu * (uth - r*(uth_r + r*(d
 problem.add_equation("r    * dt(uz) + r    * dz(p) - nu * (r*dz(dz(uz)) + uz_r + r*dr(uz_r)) + lift(tau_uz2)      = 0")
 
 
-# coulomb gauge.
-problem.add_equation("Ar + r*dz(Az) + r*dr(Ar) = 0") 
+# # coulomb gauge.
+# problem.add_equation("Ar + r*dz(Az) + r*dr(Ar) = 0") 
 
-# induction-r
-problem.add_equation("dt(Ar) + dr(phi) + eta * (Ar  - r*(Ar_r  + r*(dr(Ar_r)  + dz(dz(Ar)))))  + lift(tau_Ar2)   = 0")
+# # induction-r
+# problem.add_equation("r**0 * (dt(Ar) + dr(phi) - eta * lap_r(Ar))   = r**0 * u_cross_br")
 
-# induction-theta
-problem.add_equation("dt(Ath)          + eta * (Ath - r*(Ath_r + r*(dr(Ath_r) + dz(dz(Ath))))) + lift(tau_Ath2) = 0")
+# # induction-theta
+# problem.add_equation("r**0 * (dt(Ath)          - eta * lap_th(Ath)) = r**0 * u_cross_bth")
 
-# induction-z
-problem.add_equation("dt(Az) + dz(phi) - eta * (r*dz(dz(Az)) + Az_r + r*dr(Az_r)) + lift(tau_Az2)   = 0")
+# # induction-z
+# problem.add_equation("r**0 * (dt(Az) + dz(phi) - eta * lap_z(Az))   = r**0 * u_cross_bz")
 
 # pressure gauge
 problem.add_equation("integ(p) = 0")
@@ -203,13 +193,13 @@ problem.add_equation("dr(uth)(r='right') = 0")
 problem.add_equation("dr(uz)(r='right') = 0")
 
 
-problem.add_equation("phi(r='left') = 0")
-problem.add_equation("Ath(r='left') = 0")
-problem.add_equation("Az(r='left') = 0")
+# problem.add_equation("phi(r='left') = 0")
+# problem.add_equation("Ath(r='left') = 0")
+# problem.add_equation("Az(r='left') = 0")
 
-problem.add_equation("phi(r='right') = 0")
-problem.add_equation("Ath(r='right') = 0")
-problem.add_equation("Az(r='right') = 0")
+# problem.add_equation("phi(r='right') = 0")
+# problem.add_equation("Ath(r='right') = 0")
+# problem.add_equation("Az(r='right') = 0")
 
 solver = problem.build_solver(d3.RK222)
 solver.stop_sim_time = 10
