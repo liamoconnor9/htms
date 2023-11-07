@@ -22,11 +22,14 @@ sys.path.append('..')
 R0, R1 = 0.8, 1.0
 Lr = R1 - R0
 Lz = 2
-Nr = 32
-Nz = 128
-f = 0
+Nr = 128
+Nz = 256
+f = 2
 nu = 1e-3
 eta = nu
+stop_sim_time = 100
+init_timestep = 1e-4
+
 
 coords = d3.CartesianCoordinates('z', 'r')
 dtype = np.float64
@@ -129,6 +132,11 @@ u_dg_u_r = -uth**2 / r + uz * dz(ur) + ur * dr(ur)
 u_dg_u_th = ur * uth / r + uz * dz(uth) + ur * dr(uth)
 u_dg_u_z = uz * dz(uz) + ur * dr(uz)
 
+# A . grad B = 
+# # r : Ar*dr(Br)  + Ath/r*dth(Br)  + Az * dz(Br)  - Ath*Bth/r
+# # th: Ar*dr(Bth) + Ath/r*dth(Bth) + Az * dz(Bth) + Ath*Br/r
+# # z : Ar*dr(Bz)  + Ath/r*dth(Bz)  + Az * dz(Bz)
+
 # lorenz terms 
 b_dg_b_r = -bth**2 / r + bz * dz(br) + br * dr(br)
 b_dg_b_th = br * bth / r + bz * dz(bth) + br * dr(bth)
@@ -139,36 +147,95 @@ u_cross_br  = bz  * uth - bth * uz
 u_cross_bth = br  * uz  - bz  * ur
 u_cross_bz  = bth * ur  - br  * uth
 
+u_cross_b_r  = lambda UR, UTH, UZ, BR, BTH, BZ:      BZ * UTH - BTH * UZ
+u_cross_b_th = lambda UR, UTH, UZ, BR, BTH, BZ:      BR * UZ  - BZ  * UR
+u_cross_b_z  = lambda UR, UTH, UZ, BR, BTH, BZ:      BTH * UR - BR * UTH
+
 # curl_u_cross_br = -uz * dz(br) + ur * dz(bz) + bz * dz(ur) - br * dz(uz)
 # curl_u_cross_bth = uth * dz(bz) - uz * dz(bth) - bth * dz(uz) + bz * dz(uth) + uth * dz(br) - ur * dr(bth) - bth * dr(ur) + br * dr(uth)
 # curl_u_cross_bz = (br * uz - bz * ur) / r + uz * dr(br) - ur * dr(bz) - bz * dr(ur) + br * dr(uz)
 
-problem = d3.IVP([ur, uth, uz, Ar, Ath, Az, p, phi] + list(taus), namespace=locals())
+ur_r = dist.Field(name='ur_r', bases=bases)
+uth_r = dist.Field(name='uth_r', bases=bases)
+uz_r = dist.Field(name='uz_r', bases=bases)
+
+Ar_r = dist.Field(name='Ar_r', bases=bases)
+Ath_r = dist.Field(name='Ath_r', bases=bases)
+Az_r = dist.Field(name='Az_r', bases=bases)
+
+U0r = dist.Field(name='U0r', bases=(rbasis, ))
+U0th = dist.Field(name='U0th', bases=(rbasis, ))
+U0z = dist.Field(name='U0z', bases=(rbasis, ))
+
+A0r = dist.Field(name='A0r', bases=(rbasis, ))
+A0th = dist.Field(name='A0th', bases=(rbasis, ))
+A0z = dist.Field(name='A0z', bases=(rbasis, ))
+
+B0r = dist.Field(name='B0r', bases=(rbasis, ))
+B0th = dist.Field(name='B0th', bases=(rbasis, ))
+B0z = dist.Field(name='B0z', bases=(rbasis, ))
+
+# A0th['g'] = (rg**5 - 1) / (5*rg**2)
+
+# B0r  = (-dz(A0th)).evaluate()
+# B0th = ( dz(A0r) - dr(A0z)).evaluate()
+# B0z  = ( A0th / r + dr(A0th)).evaluate()
+
+U0th['g'] = 1 / rg
+B0z['g'] = 1.0 * (1 + 4*rg**5) / (5*rg**3)
+
+C_dg_D_r  = lambda Cr, Cth, Cz, Dr, Dth, Dz:      Cr * dr(Dr)  + Cz * dz(Dr)  - Cth * Dth / r
+C_dg_D_th = lambda Cr, Cth, Cz, Dr, Dth, Dz:      Cr * dr(Dth) + Cz * dz(Dth) + Cth * Dr  / r
+C_dg_D_z  = lambda Cr, Cth, Cz, Dr, Dth, Dz:      Cr * dr(Dz)  + Cz * dz(Dz)
+
+b_dg_b_r  = C_dg_D_r(B0r, B0th, B0z, br, bth, bz)  + C_dg_D_r(br, bth, bz, B0r, B0th, B0z)
+b_dg_b_th = C_dg_D_th(B0r, B0th, B0z, br, bth, bz) + C_dg_D_th(br, bth, bz, B0r, B0th, B0z)
+b_dg_b_z  = C_dg_D_z(B0r, B0th, B0z, br, bth, bz)  + C_dg_D_z(br, bth, bz, B0r, B0th, B0z)
+
+u_dg_u_r  = C_dg_D_r(U0r, U0th, U0z, ur, uth, uz)  + C_dg_D_r(ur, uth, uz, U0r, U0th, U0z)
+u_dg_u_th = C_dg_D_th(U0r, U0th, U0z, ur, uth, uz) + C_dg_D_th(ur, uth, uz, U0r, U0th, U0z)
+u_dg_u_z  = C_dg_D_z(U0r, U0th, U0z, ur, uth, uz)  + C_dg_D_z(ur, uth, uz, U0r, U0th, U0z)
+
+uz.fill_random()
+uz.low_pass_filter(scales=1/16)
+uz['g'] *= 1e-4
+
+problem = d3.IVP([ur, uth, uz, Ar, Ath, Az, ur_r, uth_r, uz_r, Ar_r, Ath_r, Az_r, p, phi] + list(taus), namespace=locals())
+
+# first order reductions
+
+problem.add_equation("ur_r - dr(ur) + lift(tau_ur1) = 0")
+problem.add_equation("uth_r - dr(uth) + lift(tau_uth1) = 0")
+problem.add_equation("uz_r - dr(uz) + lift(tau_uz1) = 0")
+
+problem.add_equation("Ar_r - dr(Ar) + lift(tau_Ar1) = 0")
+problem.add_equation("Ath_r - dr(Ath) + lift(tau_Ath1) = 0")
+problem.add_equation("Az_r - dr(Az) + lift(tau_Az1) = 0")
 
 # incomp.
-problem.add_equation("ur/r + dz(uz) + dr(ur) + tau_p     = 0") 
+problem.add_equation("ur + r*dz(uz) + r*ur_r + tau_p     = 0") 
 
 # momentum-r
-problem.add_equation("r**0 * (dt(ur) + dr(p) - nu * lap_r(ur))      = r**0 * (b_dg_b_r - u_dg_u_r)")
+problem.add_equation("r**2 * dt(ur) + r**2 * dr(p) - r**2 * f * uth + nu * (ur  - r*(ur_r  + r*(dr(ur_r)  + dz(dz(ur)))))  + lift(tau_ur2)  - r**2 * (b_dg_b_r - u_dg_u_r) = 0")
 
 # momentum-theta
-problem.add_equation("r**0 * (dt(uth)        - nu * lap_th(uth))    = r**0 * (b_dg_b_th - u_dg_u_th)")
+problem.add_equation("r**2 * dt(uth)   + r**2 * f * ur + nu * (uth - r*(uth_r + r*(dr(uth_r) + dz(dz(uth))))) + lift(tau_uth2) - r**2 * (b_dg_b_th - u_dg_u_th) = 0")
 
 # momentum-z
-problem.add_equation("r**0 * (dt(uz) + dz(p) - nu * lap_z(uz))      = r**0 * (b_dg_b_z - u_dg_u_z)")
+problem.add_equation("r    * dt(uz) + r    * dz(p) - nu * (r*dz(dz(uz)) + uz_r + r*dr(uz_r)) + lift(tau_uz2)               - r    * (b_dg_b_z - u_dg_u_z) = 0")
 
 
 # coulomb gauge.
-problem.add_equation("Ar/r + dz(Az) + dr(Ar) = 0") 
+problem.add_equation("Ar + r*dz(Az) + r*dr(Ar) = 0") 
 
 # induction-r
-problem.add_equation("r**0 * (dt(Ar) + dr(phi) - eta * lap_r(Ar))   = r**0 * u_cross_br")
+problem.add_equation("r**2 * dt(Ar) + r**2 * dr(phi) + eta * (Ar  - r*(Ar_r  + r*(dr(Ar_r)  + dz(dz(Ar)))))  + lift(tau_Ar2) - r**2 * (u_cross_b_r(U0r, U0th, U0z, br, bth, bz) + u_cross_b_r(ur, uth, uz, B0r, B0th, B0z) ) = 0")
 
 # induction-theta
-problem.add_equation("r**0 * (dt(Ath)          - eta * lap_th(Ath)) = r**0 * u_cross_bth")
+problem.add_equation("r**2 * dt(Ath)                 + eta * (Ath - r*(Ath_r + r*(dr(Ath_r) + dz(dz(Ath))))) + lift(tau_Ath2) - r**2 * (u_cross_b_th(U0r, U0th, U0z, br, bth, bz) + u_cross_b_th(ur, uth, uz, B0r, B0th, B0z) ) = 0")
 
 # induction-z
-problem.add_equation("r**0 * (dt(Az) + dz(phi) - eta * lap_z(Az))   = r**0 * u_cross_bz")
+problem.add_equation("r    * dt(Az) + r    * dz(phi) - eta * (r*dz(dz(Az)) + Az_r + r*dr(Az_r)) + lift(tau_Az2) - r**2 * (u_cross_b_z(U0r, U0th, U0z, br, bth, bz) + u_cross_b_z(ur, uth, uz, B0r, B0th, B0z) ) = 0")
 
 # pressure gauge
 problem.add_equation("integ(p) = 0")
@@ -186,23 +253,14 @@ problem.add_equation("dr(uz)(r='right') = 0")
 
 problem.add_equation("phi(r='left') = 0")
 problem.add_equation("Ath(r='left') = 0")
-problem.add_equation("Az(r='left') = 0")
+problem.add_equation("Az(r='left')  = 0")
 
 problem.add_equation("phi(r='right') = 0")
 problem.add_equation("Ath(r='right') = 0")
-problem.add_equation("Az(r='right') = 0")
+problem.add_equation("Az(r='right')  = 0")
 
 solver = problem.build_solver(d3.RK222)
-solver.stop_sim_time = 10
-init_timestep = 3e-4
-
-# initial conditions
-# bz['g'] = 1.0 * (1 + 4*rg**5) / (5*rg**3)
-# Ath['g'] = (1 + 4*rg**5) / (5*rg**2)
-# uth['g'] = 1 / rg
-uz.fill_random()
-uz.low_pass_filter(scales=1/16)
-uz['g'] *= 1e-4
+solver.stop_sim_time = stop_sim_time
 
 
 # measurements
@@ -234,15 +292,15 @@ flow.add_property(be, name='b_l2')
 # scalars.add_task(integ(bth**2) / Lr / Lz, name='bth_l2')
 # scalars.add_task(integ(br**2) / Lr / Lz, name='br_l2')
 
-slicepoints = solver.evaluator.add_file_handler('slicepoints', sim_dt=0.001, max_writes=50, mode='overwrite')
+# slicepoints = solver.evaluator.add_file_handler('slicepoints', sim_dt=0.001, max_writes=50, mode='overwrite')
 
-slicepoints.add_task(uz, name="uz")
-slicepoints.add_task(uth, name="uth")
-slicepoints.add_task(ur, name="ur")
+# slicepoints.add_task(uz, name="uz")
+# slicepoints.add_task(uth, name="uth")
+# slicepoints.add_task(ur, name="ur")
 
-slicepoints.add_task(bz, name="bz")
-slicepoints.add_task(bth, name="bth")
-slicepoints.add_task(br, name="br")
+# slicepoints.add_task(bz, name="bz")
+# slicepoints.add_task(bth, name="bth")
+# slicepoints.add_task(br, name="br")
 
 
 CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold=0.01,
@@ -257,10 +315,12 @@ CFL.add_velocity(br_vec)
 try:
     logger.info('entering main solver loop')
     while solver.proceed:
-        solver.step(CFL.compute_timestep())
+        ts = CFL.compute_timestep()
+        solver.step(ts)
         if (solver.iteration-1) % cadence == 0:
             msg = ""
             msg += "time = {:.2e}; ".format(solver.sim_time)
+            msg += "dt = {:.2e}; ".format(ts)
             msg += "avg(ke) = {:.2e}; ".format(flow.volume_integral('ke') / Lz / Lr)
             msg += "avg(be) = {:.2e}; ".format(flow.volume_integral('be') / Lz / Lr)
 
