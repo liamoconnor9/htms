@@ -181,13 +181,13 @@ problem.add_equation("r    * dt(uz) + r    * dz(p) - nu * (r*dz(dz(uz)) + uz_r +
 problem.add_equation("Ar + r*dz(Az) + r*dr(Ar) = 0") 
 
 # induction-r
-problem.add_equation("dt(Ar) + dr(phi) + eta * (Ar  - r*(Ar_r  + r*(dr(Ar_r)  + dz(dz(Ar)))))  + lift(tau_Ar2)   = 0")
+problem.add_equation("r**2 * dt(Ar) + r**2 * dr(phi) + eta * (Ar  - r*(Ar_r  + r*(dr(Ar_r)  + dz(dz(Ar)))))  + lift(tau_Ar2)   = 0")
 
 # induction-theta
-problem.add_equation("dt(Ath)          + eta * (Ath - r*(Ath_r + r*(dr(Ath_r) + dz(dz(Ath))))) + lift(tau_Ath2) = 0")
+problem.add_equation("r**2 * dt(Ath)                 + eta * (Ath - r*(Ath_r + r*(dr(Ath_r) + dz(dz(Ath))))) + lift(tau_Ath2) = 0")
 
 # induction-z
-problem.add_equation("dt(Az) + dz(phi) - eta * (r*dz(dz(Az)) + Az_r + r*dr(Az_r)) + lift(tau_Az2)   = 0")
+problem.add_equation("r    * dt(Az) + r    * dz(phi) - eta * (r*dz(dz(Az)) + Az_r + r*dr(Az_r)) + lift(tau_Az2)   = 0")
 
 # pressure gauge
 problem.add_equation("integ(p) = 0")
