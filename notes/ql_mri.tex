@@ -254,6 +254,23 @@ First, define the velocity and magnetic flux as follows
   \partial_t \grad^2_h\psi - \nu\grad^2\grad^2_h\psi + \nu r^{-2}\grad^2_h\psi &=  J_n[\grad^2_h\psi, \psi] - J_n[\grad^2_h a, a] + 2r^{-1}\left( b\partial_zb - v\partial_zv \right)\\
 \end{align*}
 
+\subsection{Instability Criterion}
+\begin{align*}
+  \intertext{The local linear instability criterion for the MRI is}
+  2\Omega S &> \omega_A^2 \\
+  -2r\Omega\frac{d\Omega}{dr}  &> \frac{B_0^2k_r^2}{\mu_0\rho_0} \\
+  -2\frac{d}{dr}\left( r^{-1}u_{\theta} \right)  &> \frac{\pi^2}{H_r^2} \\
+\end{align*}
+
+% 1 = S 
+% dr(Omega) = -1/r
+omega = -log(r)
+uth = -125 rlog(r)
+
+
+
+% Omega = r = uth / r
+% uth = r ^2
 % \begin{align*}
 % \intertext{Inserting this expression for velocity into the $\theta$-component of the momentum equation gives}
 %   \partial_t v + \nu\left( r^{-2}v - r^{-1}\partial_rv  - \partial_r^2v - \partial_z^2v \right) = r^{-1}\left( v\partial_z\psi - b\partial_za \right) + \partial_zb\partial_ra - \partial_za\partial_rb + \partial_z\psi\partial_rv - \partial_zv\partial_r\psi \\

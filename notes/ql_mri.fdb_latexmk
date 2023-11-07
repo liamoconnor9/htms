@@ -1,7 +1,7 @@
 # Fdb version 3
-["pdflatex"] 1699313610 "/home/liamo/htms/notes/ql_mri.tex" "ql_mri.pdf" "ql_mri" 1699313610
+["pdflatex"] 1699389464 "/home/liamo/htms/notes/ql_mri.tex" "ql_mri.pdf" "ql_mri" 1699389464
   "/etc/texmf/web2c/texmf.cnf" 1676647435 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/liamo/htms/notes/ql_mri.tex" 1699313609 15878 93f3426194deb7eb271a951c555175e4 ""
+  "/home/liamo/htms/notes/ql_mri.tex" 1699389464 16283 cc601cf335dc1e8f5ed98b91de04ff96 ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecbx1000.tfm" 1136768653 3584 2d666ecf6d466d8b007246bc2f94d9da ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecbx1200.tfm" 1136768653 3584 402da0b29eafbad07963b1224b222f18 ""
@@ -218,9 +218,9 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1644012257 39432 7155514e09a3d69036fac785183a21c2 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1676647452 4379155 98693266ff65f58d9f98aff394de12d2 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1685456333 2799176 76ac7d8ded9d04c8c7e0503f1fdbe2bd ""
-  "ql_mri.aux" 1699313610 1655 74f8d4976edaa1f4ac76e2c49fea9271 "pdflatex"
-  "ql_mri.out" 1699313610 855 76c94811a7bf22612b019ee8e54c5b1c "pdflatex"
-  "ql_mri.tex" 1699313609 15878 93f3426194deb7eb271a951c555175e4 ""
+  "ql_mri.aux" 1699389464 1783 b1a717f471bdc23b8c7d96e31cc97c51 "pdflatex"
+  "ql_mri.out" 1699389464 1011 910fbddd4701cffe852cc86c856bdd5f "pdflatex"
+  "ql_mri.tex" 1699389464 16283 cc601cf335dc1e8f5ed98b91de04ff96 ""
   (generated)
   "ql_mri.aux"
   "ql_mri.log"
