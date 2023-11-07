@@ -27,6 +27,9 @@ Nz = 128
 f = 0
 nu = 1e-3
 eta = nu
+stop_sim_time = 10
+init_timestep = 1e-4
+
 
 coords = d3.CartesianCoordinates('z', 'r')
 dtype = np.float64
@@ -168,26 +171,26 @@ problem.add_equation("Az_r - dr(Az) + lift(tau_Az1) = 0")
 problem.add_equation("ur + r*dz(uz) + r*ur_r + tau_p     = 0") 
 
 # momentum-r
-problem.add_equation("r**2 * dt(ur) + r**2 * dr(p) + nu * (ur  - r*(ur_r  + r*(dr(ur_r)  + dz(dz(ur)))))  + lift(tau_ur2) = 0")
+problem.add_equation("r**2 * dt(ur) + r**2 * dr(p) + nu * (ur  - r*(ur_r  + r*(dr(ur_r)  + dz(dz(ur)))))  + lift(tau_ur2)     = r**2 * (b_dg_b_r - u_dg_u_r)")
 
 # momentum-theta
-problem.add_equation("r**2 * dt(uth)               + nu * (uth - r*(uth_r + r*(dr(uth_r) + dz(dz(uth))))) + lift(tau_uth2)    = 0")
+problem.add_equation("r**2 * dt(uth)               + nu * (uth - r*(uth_r + r*(dr(uth_r) + dz(dz(uth))))) + lift(tau_uth2)    = r**2 * (b_dg_b_th - u_dg_u_th)")
 
 # momentum-z
-problem.add_equation("r    * dt(uz) + r    * dz(p) - nu * (r*dz(dz(uz)) + uz_r + r*dr(uz_r)) + lift(tau_uz2)      = 0")
+problem.add_equation("r    * dt(uz) + r    * dz(p) - nu * (r*dz(dz(uz)) + uz_r + r*dr(uz_r)) + lift(tau_uz2)                  = r    * (b_dg_b_z - u_dg_u_z)")
 
 
 # coulomb gauge.
 problem.add_equation("Ar + r*dz(Az) + r*dr(Ar) = 0") 
 
 # induction-r
-problem.add_equation("r**2 * dt(Ar) + r**2 * dr(phi) + eta * (Ar  - r*(Ar_r  + r*(dr(Ar_r)  + dz(dz(Ar)))))  + lift(tau_Ar2)   = 0")
+problem.add_equation("r**2 * dt(Ar) + r**2 * dr(phi) + eta * (Ar  - r*(Ar_r  + r*(dr(Ar_r)  + dz(dz(Ar)))))  + lift(tau_Ar2)   = r**2 * u_cross_br")
 
 # induction-theta
-problem.add_equation("r**2 * dt(Ath)                 + eta * (Ath - r*(Ath_r + r*(dr(Ath_r) + dz(dz(Ath))))) + lift(tau_Ath2) = 0")
+problem.add_equation("r**2 * dt(Ath)                 + eta * (Ath - r*(Ath_r + r*(dr(Ath_r) + dz(dz(Ath))))) + lift(tau_Ath2)  = r**2 * u_cross_bth")
 
 # induction-z
-problem.add_equation("r    * dt(Az) + r    * dz(phi) - eta * (r*dz(dz(Az)) + Az_r + r*dr(Az_r)) + lift(tau_Az2)   = 0")
+problem.add_equation("r    * dt(Az) + r    * dz(phi) - eta * (r*dz(dz(Az)) + Az_r + r*dr(Az_r)) + lift(tau_Az2)                = r    * u_cross_bz")
 
 # pressure gauge
 problem.add_equation("integ(p) = 0")
@@ -204,25 +207,34 @@ problem.add_equation("dr(uz)(r='right') = 0")
 
 
 problem.add_equation("phi(r='left') = 0")
-problem.add_equation("Ath(r='left') = 0")
+problem.add_equation("Ath(r='left') = (R0**5 - 1) / (5*R0**2)")
 problem.add_equation("Az(r='left') = 0")
 
 problem.add_equation("phi(r='right') = 0")
-problem.add_equation("Ath(r='right') = 0")
+problem.add_equation("Ath(r='right') = (R1**5 - 1) / (5*R1**2)")
 problem.add_equation("Az(r='right') = 0")
 
 solver = problem.build_solver(d3.RK222)
-solver.stop_sim_time = 10
-init_timestep = 3e-6
+solver.stop_sim_time = stop_sim_time
 
 # initial conditions
 # bz['g'] = 1.0 * (1 + 4*rg**5) / (5*rg**3)
-# Ath['g'] = (1 + 4*rg**5) / (5*rg**2)
+Ath['g'] = (rg**5 - 1) / (5*rg**2)
 uth['g'] = 1 / rg
 uz.fill_random()
 uz.low_pass_filter(scales=1/16)
 uz['g'] *= 1e-4
 
+# bz = Ath/r + dr(Ath)
+#    = 1/r * dr(r * Ath)
+
+# r * bz = dr(r * Ath)
+#        = (1 + 4*rg**5) / (5*rg**2)
+
+# r * Ath = integ( (1 + 4*rg**5) / (5*rg**2) )
+#         = (r**5 - 1) / (5*r)
+
+# Ath     = (r**5 - 1) / (5*r**2)
 
 # measurements
 cadence = 100
@@ -270,16 +282,18 @@ CFL = d3.CFL(solver, initial_dt=init_timestep, cadence=10, safety=0.3, threshold
 CFL.add_velocity(uz_vec)
 CFL.add_velocity(ur_vec)
 
-# CFL.add_velocity(bz_vec)
-# CFL.add_velocity(br_vec)
+CFL.add_velocity(bz_vec)
+CFL.add_velocity(br_vec)
 
 try:
     logger.info('entering main solver loop')
     while solver.proceed:
-        solver.step(CFL.compute_timestep())
+        ts = CFL.compute_timestep()
+        solver.step(ts)
         if (solver.iteration-1) % cadence == 0:
             msg = ""
             msg += "time = {:.2e}; ".format(solver.sim_time)
+            msg += "dt = {:.2e}; ".format(ts)
             msg += "avg(ke) = {:.2e}; ".format(flow.volume_integral('ke') / Lz / Lr)
             msg += "avg(be) = {:.2e}; ".format(flow.volume_integral('be') / Lz / Lr)
 
