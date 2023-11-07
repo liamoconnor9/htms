@@ -22,12 +22,12 @@ sys.path.append('..')
 R0, R1 = 0.8, 1.0
 Lr = R1 - R0
 Lz = 2
-Nr = 32
-Nz = 128
+Nr = 128
+Nz = 256
 f = 0
 nu = 1e-3
 eta = nu
-stop_sim_time = 10
+stop_sim_time = 100
 init_timestep = 1e-4
 
 

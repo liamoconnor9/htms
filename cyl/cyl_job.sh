@@ -22,7 +22,7 @@ export MPI_UNBUFFERED_STDIO=true
 
 source ~/png2mp4.sh
 cd ~/htms/cyl
-mpiexec_mpt -np 32 python3 cyl_2p5.py
+mpiexec_mpt -np 32 python3 cyl_A.py
 
 # cd ~/mri/mri_d3
 
